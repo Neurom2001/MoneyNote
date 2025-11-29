@@ -699,7 +699,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                         <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-full mb-1">
                             <PiggyBank size={28} className="text-emerald-500" />
                         </div>
-                        <span className="text-base sm:text-sm">🎯 {t.setBudget}</span>
+                        <span className="text-base sm:text-sm">{t.setBudget}</span>
                         <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">{t.setBudgetDesc}</span>
                     </button>
                 </div>
