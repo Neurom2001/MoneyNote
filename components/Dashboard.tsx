@@ -94,6 +94,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const [showSupportModal, setShowSupportModal] = useState(false);
   
   const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
+  
+  // PWA Install Prompt
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   // Sorting
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
@@ -129,8 +132,17 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
       )
       .subscribe();
 
+    // PWA Install Prompt Listener
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
@@ -146,6 +158,15 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     const data = await getTransactions();
     setTransactions(data);
     setIsLoading(false);
+  };
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
   };
 
   const openBudgetModal = () => {
@@ -445,6 +466,11 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
             </div>
           </div>
           <div className="flex gap-2">
+            {deferredPrompt && (
+                <button onClick={handleInstallClick} className="bg-primary/10 hover:bg-primary/20 text-primary transition text-xs border border-primary/20 px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold animate-pulse">
+                    <Smartphone size={14} /> <span className="hidden sm:inline">Install App</span>
+                </button>
+            )}
             <button onClick={() => setShowSupportModal(true)} className="text-dark-muted hover:text-blue-400 transition text-xs border border-dark-border px-2 py-1.5 rounded flex items-center gap-1">
                 <HelpCircle size={14} /> <span className="hidden sm:inline">Feedback</span>
             </button>
@@ -509,7 +535,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                         className="bg-slate-700/50 hover:bg-slate-700 border border-dashed border-slate-500 text-emerald-400 font-bold py-3 px-6 rounded-xl transition w-full flex flex-col items-center justify-center gap-2"
                     >
                         <Target size={24} className="mb-1" />
-                        <span> လစဉ်သုံးငွေ လျာထားချက် သတ်မှတ်မည်</span>
+                        <span>🎯 လစဉ်သုံးငွေ လျာထားချက် သတ်မှတ်မည်</span>
                         <span className="text-[10px] text-dark-muted font-normal">ချွေတာလိုသော ပမာဏကို သတ်မှတ်ပြီး စီမံပါ</span>
                     </button>
                 </div>
