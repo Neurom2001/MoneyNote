@@ -6,7 +6,7 @@ import {
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
   Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
-  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, HelpCircle, Mail, Send, Settings, Target
+  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, HelpCircle, Mail, Send, Settings, Target, AlertTriangle
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -78,10 +78,15 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   
-  // Feature 3: Budget
+  // Feature 3: Budget & Custom Thresholds
   const [budgetLimit, setBudgetLimit] = useState<number>(0);
+  const [warningPercent, setWarningPercent] = useState<number>(80); // Default 80%
+  const [dangerPercent, setDangerPercent] = useState<number>(100); // Default 100%
+  
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [tempBudget, setTempBudget] = useState('');
+  const [tempWarning, setTempWarning] = useState(80);
+  const [tempDanger, setTempDanger] = useState(100);
 
   // Selection & Editing
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -113,7 +118,12 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     
     // Load budget settings from local storage
     const savedBudget = localStorage.getItem(`budget_${currentUser}`);
+    const savedWarning = localStorage.getItem(`budget_warning_${currentUser}`);
+    const savedDanger = localStorage.getItem(`budget_danger_${currentUser}`);
+
     if (savedBudget) setBudgetLimit(parseInt(savedBudget));
+    if (savedWarning) setWarningPercent(parseInt(savedWarning));
+    if (savedDanger) setDangerPercent(parseInt(savedDanger));
     
     // Realtime Subscription
     const channel = supabase.channel('realtime_transactions')
@@ -171,19 +181,34 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
   const openBudgetModal = () => {
     setTempBudget(budgetLimit > 0 ? budgetLimit.toString() : '');
+    setTempWarning(warningPercent);
+    setTempDanger(dangerPercent);
     setShowBudgetModal(true);
   };
 
   const handleSaveBudget = () => {
     const val = parseInt(tempBudget);
-    if (!isNaN(val) && val > 0) {
-      setBudgetLimit(val);
-      localStorage.setItem(`budget_${currentUser}`, val.toString());
-      setShowBudgetModal(false);
-      showToast('ဘတ်ဂျက် သတ်မှတ်ပြီးပါပြီ');
-    } else {
+    
+    if (isNaN(val) || val <= 0) {
         showToast('ကျေးဇူးပြု၍ ပမာဏကို မှန်ကန်စွာထည့်ပါ', 'error');
+        return;
     }
+
+    if (tempWarning >= tempDanger) {
+        showToast('သတိပေးချက် ရာခိုင်နှုန်းသည် အန္တရာယ် ရာခိုင်နှုန်းထက် နည်းရပါမည်', 'error');
+        return;
+    }
+
+    setBudgetLimit(val);
+    setWarningPercent(tempWarning);
+    setDangerPercent(tempDanger);
+
+    localStorage.setItem(`budget_${currentUser}`, val.toString());
+    localStorage.setItem(`budget_warning_${currentUser}`, tempWarning.toString());
+    localStorage.setItem(`budget_danger_${currentUser}`, tempDanger.toString());
+
+    setShowBudgetModal(false);
+    showToast('ဘတ်ဂျက် setting များကို သိမ်းဆည်းပြီးပါပြီ');
   };
 
   const handleRemoveBudget = () => {
@@ -364,8 +389,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
   // Budget Calculations
   const budgetUsagePercent = budgetLimit > 0 ? (monthlyStats.expense / budgetLimit) * 100 : 0;
-  const isOverBudget = monthlyStats.expense > budgetLimit;
-  const isWarningZone = !isOverBudget && budgetUsagePercent >= 80;
+  // Use custom thresholds
+  const isDangerZone = budgetUsagePercent >= dangerPercent;
+  const isWarningZone = !isDangerZone && budgetUsagePercent >= warningPercent;
   const overSpentAmount = monthlyStats.expense - budgetLimit;
 
   // Search Categories
@@ -516,8 +542,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         </div>
 
         {/* Feature 3: Budget Goal */}
-        <div className="bg-dark-card rounded-xl p-4 border border-dark-border relative">
-            <div className="flex justify-between items-center mb-2">
+        <div className="bg-dark-card rounded-xl p-4 border border-dark-border relative overflow-hidden group">
+            <div className="flex justify-between items-center mb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                    <PieChart size={16} className="text-primary"/> လစဉ် သုံးငွေလျာထားချက် (Budget)
                 </h3>
@@ -526,7 +552,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                 {budgetLimit > 0 && (
                   <button 
                     onClick={openBudgetModal}
-                    className="text-dark-muted hover:text-white transition p-1"
+                    className="text-dark-muted hover:text-white transition p-1.5 hover:bg-slate-700 rounded-lg"
                   >
                       <Settings size={18} />
                   </button>
@@ -537,44 +563,50 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                 <div className="py-2 text-center">
                     <button 
                         onClick={openBudgetModal}
-                        className="bg-slate-700/50 hover:bg-slate-700 border border-dashed border-slate-500 text-emerald-400 font-bold py-3 px-6 rounded-xl transition w-full flex flex-col items-center justify-center gap-2"
+                        className="bg-slate-700/50 hover:bg-slate-700 border border-dashed border-slate-500 text-emerald-400 font-bold py-3 px-6 rounded-xl transition w-full flex flex-col items-center justify-center gap-2 group-hover:border-emerald-500/50"
                     >
-                        <Target size={24} className="mb-1" />
+                        <Target size={24} className="mb-1 text-emerald-500" />
                         <span>🎯 လစဉ်သုံးငွေ လျာထားချက် သတ်မှတ်မည်</span>
                         <span className="text-[10px] text-dark-muted font-normal">ချွေတာလိုသော ပမာဏကို သတ်မှတ်ပြီး စီမံပါ</span>
                     </button>
                 </div>
             ) : (
                 <>
-                    <div className="flex justify-between text-xs text-dark-muted mb-1">
-                        <span>သုံးစွဲမှု: {monthlyStats.expense.toLocaleString()}</span>
-                        <span>လျာထားချက်: {budgetLimit > 0 ? budgetLimit.toLocaleString() : 'မသတ်မှတ်ထားပါ'}</span>
+                    <div className="flex justify-between text-xs text-dark-muted mb-1.5">
+                        <span className="font-medium text-white">သုံးစွဲမှု: {monthlyStats.expense.toLocaleString()}</span>
+                        <span>လျာထားချက်: {budgetLimit.toLocaleString()}</span>
                     </div>
-                    <div className="space-y-2 mt-1">
-                        <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                    <div className="space-y-3 mt-1">
+                        <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden relative">
                             <div 
-                                className={`h-2.5 rounded-full transition-all duration-500 ${isOverBudget ? 'bg-red-500' : isWarningZone ? 'bg-yellow-500' : 'bg-primary'}`} 
+                                className={`h-full rounded-full transition-all duration-700 ease-out ${isDangerZone ? 'bg-red-500' : isWarningZone ? 'bg-yellow-500' : 'bg-primary'}`} 
                                 style={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
                             ></div>
                         </div>
                         
                         {/* Budget Alerts */}
-                        {isOverBudget && (
-                            <div className="flex items-start gap-2 text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-500/30">
-                                <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                                <span>
-                                    လျာထားချက်ထက် <b className="text-white font-bold">{overSpentAmount.toLocaleString()} ကျပ်</b> ပိုသုံးမိနေပါပြီ!
-                                </span>
+                        {isDangerZone ? (
+                            <div className="flex items-start gap-2 text-xs text-red-200 bg-red-900/30 p-2.5 rounded-lg border border-red-500/30 animate-in fade-in">
+                                <AlertTriangle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                                <div>
+                                    <span className="font-bold text-red-400 block mb-0.5">အန္တရာယ်အဆင့် ရောက်ရှိနေပါသည် ({dangerPercent}%)</span>
+                                    {monthlyStats.expense > budgetLimit && (
+                                       <span>လျာထားချက်ထက် <b className="text-white">{overSpentAmount.toLocaleString()} ကျပ်</b> ပိုသုံးမိနေပါပြီ။</span>
+                                    )}
+                                </div>
                             </div>
-                        )}
-
-                        {isWarningZone && (
-                            <div className="flex items-start gap-2 text-xs text-yellow-300 bg-yellow-900/20 p-2 rounded border border-yellow-500/30">
-                                <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                                <span>
-                                    သတိပြုပါ: လျာထားချက်၏ ၈၀% ကျော်နေပါပြီ။ ချွေတာပါ။
-                                </span>
+                        ) : isWarningZone ? (
+                            <div className="flex items-start gap-2 text-xs text-yellow-200 bg-yellow-900/30 p-2.5 rounded-lg border border-yellow-500/30 animate-in fade-in">
+                                <AlertCircle size={16} className="text-yellow-500 shrink-0 mt-0.5" />
+                                <div>
+                                    <span className="font-bold text-yellow-400 block mb-0.5">သတိပြုရန် ({warningPercent}%)</span>
+                                    <span>လျာထားချက်၏ {warningPercent}% ကျော်နေပါပြီ။ ချွေတာပါ။</span>
+                                </div>
                             </div>
+                        ) : (
+                             <div className="flex items-center gap-2 text-[10px] text-emerald-400 bg-emerald-900/10 px-2 py-1 rounded border border-emerald-500/10 w-fit">
+                                <CheckCircle2 size={12}/> ပုံမှန်အခြေအနေတွင် ရှိနေပါသည်။
+                             </div>
                         )}
                     </div>
                 </>
@@ -593,9 +625,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
             
             {/* Search Input & Category Filters */}
             <div className="space-y-3">
-                 <div className="relative">
+                 <div className="relative group">
                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                         <Search size={16} className="text-dark-muted"/>
+                         <Search size={16} className="text-dark-muted group-focus-within:text-primary transition"/>
                      </div>
                      <input 
                          type="text" 
@@ -604,7 +636,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                          onFocus={() => setIsSearchFocused(true)}
                          onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                          onChange={(e) => setSearchQuery(e.target.value)}
-                         className="w-full bg-slate-900 border border-dark-border text-white text-sm rounded-lg pl-10 pr-10 py-2 focus:outline-none focus:border-primary transition"
+                         className="w-full bg-slate-900 border border-dark-border text-white text-sm rounded-lg pl-10 pr-10 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
                      />
                      {searchQuery && (
                         <button 
@@ -927,7 +959,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         </div>
       )}
 
-      {/* Budget Settings Modal */}
+      {/* Budget Settings Modal (Enhanced) */}
       {showBudgetModal && (
         <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
            <div className="bg-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200">
@@ -941,31 +973,71 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                    <button onClick={() => setShowBudgetModal(false)} className="text-dark-muted hover:text-white"><X size={20}/></button>
                </div>
                
-               <p className="text-dark-muted text-sm">
-                   ဤလအတွက် သုံးစွဲရန် လျာထားသော ငွေပမာဏကို သတ်မှတ်ပါ။
+               <p className="text-dark-muted text-sm border-b border-dark-border pb-3">
+                   လစဉ်သုံးငွေ လျာထားချက်နှင့် သတိပေးချက်များကို ချိန်ညှိပါ။
                </p>
 
-               <div className="space-y-4 pt-2">
+               <div className="space-y-4 pt-1 h-64 overflow-y-auto pr-1">
+                   {/* Budget Amount */}
                    <div>
-                       <label className="block text-xs font-bold text-dark-muted uppercase mb-1">လျာထားချက် ပမာဏ (ကျပ်)</label>
+                       <label className="block text-xs font-bold text-white uppercase mb-2">လျာထားချက် ပမာဏ (ကျပ်)</label>
                        <input 
                           type="number" 
                           value={tempBudget} 
                           onChange={(e) => setTempBudget(e.target.value)}
-                          className="w-full bg-slate-700 rounded-xl px-4 py-3 text-white text-lg font-bold border-2 border-transparent focus:border-primary focus:outline-none"
+                          className="w-full bg-slate-700 rounded-xl px-4 py-3 text-white text-lg font-bold border-2 border-transparent focus:border-primary focus:outline-none placeholder-slate-500"
                           placeholder="0"
-                          autoFocus
                        />
                    </div>
 
-                   <div className="flex gap-3 pt-2">
-                       <button onClick={handleRemoveBudget} className="flex-1 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-sm transition border border-red-500/20">
-                           <Trash2 size={16} className="inline mr-1 mb-0.5" /> ပြန်ဖျက်မည်
-                       </button>
-                       <button onClick={handleSaveBudget} className="flex-1 py-3 rounded-xl bg-primary text-slate-900 hover:bg-emerald-600 font-bold text-sm transition shadow-lg shadow-emerald-900/20">
-                           <Save size={16} className="inline mr-1 mb-0.5" /> သိမ်းမည်
-                       </button>
+                   {/* Warning Threshold */}
+                   <div>
+                      <div className="flex justify-between text-xs font-bold mb-2">
+                          <label className="text-yellow-400 uppercase">Warning Alert</label>
+                          <span className="text-yellow-400">{tempWarning}%</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="50" 
+                        max="95" 
+                        step="5"
+                        value={tempWarning}
+                        onChange={(e) => setTempWarning(parseInt(e.target.value))}
+                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-yellow-400"
+                      />
+                      <p className="text-[10px] text-dark-muted mt-1">
+                          သုံးငွေ {tempWarning}% ကျော်လွန်ပါက အဝါရောင်ဖြင့် သတိပေးပါမည်။
+                      </p>
                    </div>
+
+                   {/* Danger Threshold */}
+                   <div>
+                      <div className="flex justify-between text-xs font-bold mb-2">
+                          <label className="text-red-400 uppercase">Critical Alert</label>
+                          <span className="text-red-400">{tempDanger}%</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min={tempWarning + 5} 
+                        max="100" 
+                        step="5"
+                        value={tempDanger}
+                        onChange={(e) => setTempDanger(parseInt(e.target.value))}
+                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-red-500"
+                      />
+                      <p className="text-[10px] text-dark-muted mt-1">
+                          သုံးငွေ {tempDanger}% ကျော်လွန်ပါက အနီရောင်ဖြင့် အန္တရာယ်ပြပါမည်။
+                      </p>
+                   </div>
+               </div>
+
+               <div className="flex gap-3 pt-3 border-t border-dark-border">
+                   <button onClick={handleRemoveBudget} className="flex-1 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white font-bold text-sm transition border border-red-500/20">
+                       <Trash2 size={16} className="inline mr-1 mb-0.5" /> ဖျက်မည်
+                   </button>
+                   <button onClick={handleSaveBudget} className="flex-1 py-3 rounded-xl bg-primary text-slate-900 hover:bg-emerald-600 font-bold text-sm transition shadow-lg shadow-emerald-900/20">
+                       <Save size={16} className="inline mr-1 mb-0.5" /> သိမ်းမည်
+                   </button>
                </div>
            </div>
         </div>

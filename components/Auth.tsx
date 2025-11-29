@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { loginUser, registerUser } from '../services/storageService';
-import { Wallet, AlertTriangle, Eye, EyeOff, ShieldCheck, PieChart, TrendingUp, Heart, Copyright, Mail, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Wallet, AlertTriangle, Eye, EyeOff, ShieldCheck, PieChart, TrendingUp, Heart, Copyright, Mail, Send, CheckCircle2, AlertCircle, User, Lock, ArrowRight } from 'lucide-react';
 
 interface AuthProps {
   onLogin: (username: string) => void;
@@ -94,19 +94,19 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       {/* Mobile: Order 2 (Bottom), Desktop: Order 1 (Left) */}
       <div className="lg:w-1/2 p-6 lg:p-12 flex flex-col justify-center bg-slate-900 border-t lg:border-t-0 lg:border-r border-dark-border relative overflow-hidden shrink-0 order-2 lg:order-1">
          {/* Background decoration */}
-         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-10">
-            <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
-            <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-500 rounded-full blur-3xl"></div>
+         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20 lg:opacity-10">
+            <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-500 rounded-full blur-3xl opacity-50"></div>
          </div>
 
          <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left py-8 lg:py-0">
             <div className="flex items-center gap-3 mb-6">
-                <div className="bg-primary/20 p-2 lg:p-3 rounded-xl">
-                    <Wallet className="text-primary w-8 h-8 lg:w-10 lg:h-10" />
+                <div className="bg-gradient-to-br from-primary to-emerald-600 p-3 rounded-2xl shadow-lg shadow-primary/20">
+                    <Wallet className="text-slate-900 w-8 h-8 lg:w-10 lg:h-10" />
                 </div>
                 <div>
                     <h1 className="text-2xl lg:text-4xl font-bold tracking-tight text-white">MoneyNote</h1>
-                    <p className="text-emerald-400 font-medium text-xs lg:text-base">Smart Finance Tracker</p>
+                    <p className="text-emerald-400 font-medium text-xs lg:text-base tracking-widest uppercase">Smart Finance Tracker</p>
                 </div>
             </div>
 
@@ -115,11 +115,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 မြန်မာဘာသာဖြင့် အသုံးပြုရလွယ်ကူပြီး တိကျသေချာသော စာရင်းအင်းစနစ်။
             </p>
 
-            <div className="space-y-4 mb-8">
+            <div className="space-y-5 mb-8 w-full max-w-sm lg:max-w-none">
                 {features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-slate-300 text-sm lg:text-base">
-                        <div className="text-primary shrink-0">{feature.icon}</div>
-                        <span>{feature.text}</span>
+                    <div key={idx} className="flex items-center gap-4 text-slate-300 text-sm lg:text-base p-3 bg-slate-800/40 rounded-xl border border-slate-700/50 hover:bg-slate-800/80 transition group">
+                        <div className="text-primary bg-primary/10 p-2 rounded-lg group-hover:bg-primary group-hover:text-slate-900 transition duration-300 shrink-0">{feature.icon}</div>
+                        <span className="font-medium">{feature.text}</span>
                     </div>
                 ))}
             </div>
@@ -130,11 +130,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                      <Copyright size={12} /> {new Date().getFullYear()} MoneyNote. All rights reserved.
                  </div>
                  <div className="flex items-center gap-3 text-primary/80 text-xs">
-                     <a href="mailto:bornaskraz@gmail.com" className="flex items-center gap-1 font-bold hover:underline hover:text-primary">
+                     <a href="mailto:bornaskraz@gmail.com" className="flex items-center gap-1 font-bold hover:underline hover:text-primary transition">
                         <Mail size={12} /> Email
                      </a>
                      <span className="text-slate-700">|</span>
-                     <a href="https://t.me/swelmyel" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 font-bold hover:underline hover:text-primary">
+                     <a href="https://t.me/swelmyel" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 font-bold hover:underline hover:text-primary transition">
                         <Send size={12} /> Telegram
                      </a>
                  </div>
@@ -147,8 +147,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
       {/* Auth Form Section */}
       {/* Mobile: Order 1 (Top), Desktop: Order 2 (Right) */}
-      <div className="lg:w-1/2 p-6 lg:p-12 flex items-center justify-center bg-slate-800/50 flex-grow order-1 lg:order-2 min-h-[60vh] lg:min-h-auto">
-        <div className="w-full max-w-md space-y-6 lg:space-y-8">
+      <div className="lg:w-1/2 p-6 lg:p-12 flex items-center justify-center bg-slate-800/30 flex-grow order-1 lg:order-2 min-h-[60vh] lg:min-h-auto backdrop-blur-sm">
+        <div className="w-full max-w-md space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
             
             {/* Mobile Only Header */}
             <div className="lg:hidden text-center mb-6">
@@ -170,49 +170,55 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             </div>
 
             {/* Critical Warning Box */}
-            <div className="bg-amber-900/30 border border-amber-600/50 rounded-lg p-3 lg:p-4 flex gap-3 items-start text-left">
+            <div className="bg-amber-900/20 border border-amber-600/30 rounded-xl p-4 flex gap-3 items-start text-left shadow-sm">
                 <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={20} />
-                <div className="text-xs lg:text-sm text-amber-200">
+                <div className="text-xs lg:text-sm text-amber-200/80 leading-relaxed">
                     <strong>သတိပြုရန်:</strong> ဤစနစ်သည် အီးမေးလ်မလိုဘဲ အသုံးပြုနိုင်သော်လည်း၊ 
-                    <span className="text-white font-bold underline decoration-amber-500 mx-1">စကားဝှက်မေ့သွားပါက ပြန်ယူ၍ မရနိုင်ပါ။</span> 
+                    <span className="text-amber-200 font-bold underline decoration-amber-500 mx-1">စကားဝှက်မေ့သွားပါက ပြန်ယူ၍ မရနိုင်ပါ။</span> 
                     ထို့ကြောင့် User Name နှင့် Password ကို သေချာစွာ မှတ်သားထားပါ။
                 </div>
             </div>
 
             {error && (
-                <div className="bg-red-900/30 border border-red-800 text-red-200 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                <div className="bg-red-500/10 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl text-sm flex items-center gap-2 animate-in shake">
                     <AlertTriangle size={16} /> {error}
                 </div>
             )}
             
-            {/* Removed the static success alert box in favor of Toast */}
-
-            <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                    <label className="block text-slate-300 text-sm font-bold mb-2">
+                    <label className="block text-slate-300 text-xs font-bold uppercase tracking-wider mb-2">
                         အသုံးပြုသူအမည် (User Name)
                     </label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-900 border border-slate-600 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition placeholder-slate-500"
-                        placeholder="ဥပမာ - mgmg"
-                        disabled={isLoading}
-                        autoComplete="username"
-                    />
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <User size={18} className="text-slate-500 group-focus-within:text-primary transition"/>
+                        </div>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3.5 bg-slate-900 border border-slate-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
+                            placeholder="ဥပမာ - mgmg"
+                            disabled={isLoading}
+                            autoComplete="username"
+                        />
+                    </div>
                 </div>
                 
                 <div>
-                    <label className="block text-slate-300 text-sm font-bold mb-2">
+                    <label className="block text-slate-300 text-xs font-bold uppercase tracking-wider mb-2">
                         စကားဝှက် (Password)
                     </label>
-                    <div className="relative">
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Lock size={18} className="text-slate-500 group-focus-within:text-primary transition"/>
+                        </div>
                         <input
                             type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-900 border border-slate-600 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition placeholder-slate-500 pr-12"
+                            className="w-full pl-10 pr-12 py-3.5 bg-slate-900 border border-slate-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
                             placeholder="အနည်းဆုံး ၆ လုံး"
                             disabled={isLoading}
                             autoComplete={isLoginView ? "current-password" : "new-password"}
@@ -220,9 +226,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition p-1"
                         >
-                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     </div>
                 </div>
@@ -230,13 +236,20 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full bg-gradient-to-r from-emerald-500 to-primary hover:from-emerald-400 hover:to-emerald-500 text-slate-900 font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-900/20 transition duration-200 transform hover:-translate-y-0.5 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full bg-gradient-to-r from-emerald-600 to-primary hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 group ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                    {isLoading ? 'လုပ်ဆောင်နေသည်...' : (isLoginView ? 'ဝင်ရောက်မည်' : 'စာရင်းသွင်းမည်')}
+                    {isLoading ? (
+                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                        <>
+                            {isLoginView ? 'ဝင်ရောက်မည်' : 'စာရင်းသွင်းမည်'}
+                            <ArrowRight size={20} className="group-hover:translate-x-1 transition" />
+                        </>
+                    )}
                 </button>
             </form>
 
-            <div className="text-center pt-4 border-t border-slate-700">
+            <div className="text-center pt-6 border-t border-slate-700/50">
                 <p className="text-slate-400 text-sm mb-2">
                     {isLoginView ? 'အကောင့်မရှိသေးဘူးလား?' : 'အကောင့်ရှိပြီးသားလား?'}
                 </p>
@@ -244,11 +257,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     onClick={() => {
                         setIsLoginView(!isLoginView);
                         setError('');
-                        // Clear toast when switching views
                         setToast(null);
                     }}
                     disabled={isLoading}
-                    className="text-primary hover:text-emerald-300 font-bold transition"
+                    className="text-primary hover:text-emerald-300 font-bold transition flex items-center justify-center gap-1 mx-auto hover:underline decoration-2 underline-offset-4"
                 >
                     {isLoginView 
                     ? 'အကောင့်သစ် ဖွင့်ပါ' 
