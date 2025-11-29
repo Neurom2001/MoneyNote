@@ -1,4 +1,4 @@
-import { Transaction, TransactionType, BudgetSettings } from '../types';
+import { Transaction, TransactionType, BudgetSettings, UserSettings, Language } from '../types';
 import { supabase } from './supabaseClient';
 
 // Helper to convert username to a valid fake email for Supabase Auth
@@ -178,6 +178,42 @@ export const deleteBudgetSettings = async (): Promise<{ success: boolean; error?
     .eq('user_id', user.id);
 
   if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+};
+
+// --- User Settings Functions (Language & Currency) ---
+
+export const getUserSettings = async (): Promise<UserSettings | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error) return null;
+  return data as UserSettings;
+};
+
+export const saveUserSettings = async (settings: UserSettings): Promise<{ success: boolean; error?: string }> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "User not found" };
+
+  const { error } = await supabase
+    .from('user_settings')
+    .upsert({
+      user_id: user.id,
+      currency: settings.currency,
+      language: settings.language,
+      updated_at: new Date().toISOString()
+    });
+
+  if (error) {
+    console.error('Error saving settings:', error);
     return { success: false, error: error.message };
   }
   return { success: true };

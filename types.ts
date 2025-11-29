@@ -33,3 +33,8 @@ export interface BudgetSettings {
 }
 
 export type Language = 'my' | 'en' | 'ja';
+
+export interface UserSettings {
+  currency: string;
+  language: Language;
+}

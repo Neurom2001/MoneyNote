@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { 
   getTransactions, saveTransaction, deleteTransaction, updateTransaction, logoutUser,
-  getBudgetSettings, saveBudgetSettings, deleteBudgetSettings 
+  getBudgetSettings, saveBudgetSettings, deleteBudgetSettings,
+  getUserSettings, saveUserSettings
 } from '../services/storageService';
 import { supabase } from '../services/supabaseClient';
 import { 
@@ -41,6 +42,7 @@ const LANGUAGES = [
 
 const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   // --- State ---
+  // Initial state uses localStorage as fallback for immediate render, but will sync with DB
   const [language, setLanguage] = useState<Language>((localStorage.getItem('language') as Language) || 'my');
   const t = TRANSLATIONS[language];
   
@@ -145,9 +147,6 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   };
 
   // --- Effects ---
-  useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
 
   // Check for login success flag on mount
   useEffect(() => {
@@ -161,6 +160,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   useEffect(() => {
     loadData();
     loadBudget();
+    loadUserSettings();
     
     // Realtime Subscription for Transactions
     const txChannel = supabase.channel('realtime_transactions')
@@ -171,12 +171,34 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
       )
       .subscribe();
 
-    // Realtime Subscription for Budgets (Fix for cross-device sync)
+    // Realtime Subscription for Budgets
     const budgetChannel = supabase.channel('realtime_budgets')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'budgets' },
         () => { loadBudget(); }
+      )
+      .subscribe();
+
+    // Realtime Subscription for User Settings (Language & Currency)
+    const settingsChannel = supabase.channel('realtime_settings')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_settings' },
+        (payload) => {
+            // Update state immediately when another device changes settings
+            const newSettings = payload.new as any;
+            if (newSettings) {
+                if (newSettings.currency) {
+                    setCurrency(newSettings.currency);
+                    localStorage.setItem('currency', newSettings.currency);
+                }
+                if (newSettings.language) {
+                    setLanguage(newSettings.language);
+                    localStorage.setItem('language', newSettings.language);
+                }
+            }
+        }
       )
       .subscribe();
 
@@ -191,33 +213,53 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     return () => {
       supabase.removeChannel(txChannel);
       supabase.removeChannel(budgetChannel);
+      supabase.removeChannel(settingsChannel);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
-  useEffect(() => {
-    localStorage.setItem('currency', currency);
-  }, [currency]);
-
-
-  const handleCurrencyChange = (newCurrency: string) => {
+  const handleCurrencyChange = async (newCurrency: string) => {
+    // Optimistic Update
     setCurrency(newCurrency);
+    localStorage.setItem('currency', newCurrency);
     setShowCurrencyModal(false);
     showToast(language === 'my' 
       ? `ငွေကြေးယူနစ်ကို ${newCurrency} သို့ ပြောင်းလဲလိုက်ပါပြီ` 
       : `Currency changed to ${newCurrency}`, 
     'success');
+
+    // Save to DB for sync
+    await saveUserSettings({ currency: newCurrency, language });
   };
 
-  const handleLanguageChange = (newLang: Language) => {
+  const handleLanguageChange = async (newLang: Language) => {
+    // Optimistic Update
     setLanguage(newLang);
+    localStorage.setItem('language', newLang);
     setShowLanguageModal(false);
     const langLabel = LANGUAGES.find(l => l.code === newLang)?.label;
     showToast(newLang === 'my' 
       ? 'ဘာသာစကား ပြောင်းလဲလိုက်ပါပြီ' 
       : `Language changed to ${langLabel}`, 
     'success');
+
+    // Save to DB for sync
+    await saveUserSettings({ currency, language: newLang });
+  };
+
+  const loadUserSettings = async () => {
+    const settings = await getUserSettings();
+    if (settings) {
+        setCurrency(settings.currency);
+        setLanguage(settings.language);
+        // Sync local storage to keep them consistent
+        localStorage.setItem('currency', settings.currency);
+        localStorage.setItem('language', settings.language);
+    } else {
+        // If no settings in DB, save current default to DB to initialize
+        await saveUserSettings({ currency, language });
+    }
   };
 
   const loadData = async () => {
