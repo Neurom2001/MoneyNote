@@ -4,6 +4,10 @@ export enum TransactionType {
   EXPENSE = 'EXPENSE',
 }
 
+export type Language = 'my' | 'en' | 'ja';
+
+export type Theme = 'light' | 'dark';
+
 export interface Transaction {
   id: string;
   amount: number;
@@ -26,17 +30,19 @@ export interface MonthlyStats {
 }
 
 export interface BudgetSettings {
+  id?: string;
+  user_id?: string;
   limit_amount: number;
   warning_percent: number;
   danger_percent: number;
-  updated_at?: string; // Needed to check if budget is stale (from previous month)
+  updated_at?: string;
 }
 
-export type Language = 'my' | 'en' | 'ja';
-export type Theme = 'light' | 'dark';
-
 export interface UserSettings {
+  id?: string;
+  user_id?: string;
   currency: string;
   language: Language;
   theme: Theme;
+  updated_at?: string;
 }

@@ -1,6 +1,8 @@
-import { ReactNode } from "react";
 
-export type Language = 'my' | 'en' | 'ja';
+import { ReactNode } from "react";
+import { Language } from "../types";
+
+export type { Language };
 
 export const TRANSLATIONS = {
   my: {

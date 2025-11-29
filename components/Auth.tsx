@@ -73,15 +73,12 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     try {
       if (isLoginView) {
         // Set a flag so Dashboard knows to show the "Login Successful" toast
-        // We set this before calling loginUser because the app view might switch immediately upon auth state change
         localStorage.setItem('loginSuccess', 'true');
 
         const result = await loginUser(username, password);
         if (result.success) {
            // Success! The App component listens to Supabase auth changes and will switch to Dashboard automatically.
-           // The Dashboard component will check for 'loginSuccess' flag and show the toast.
         } else {
-          // Login failed, clear the flag
           localStorage.removeItem('loginSuccess');
           setError(language === 'my' ? 'အကောင့်ဝင်မရပါ (သို့) စကားဝှက်မှားယွင်းနေပါသည်။' : 'Login failed or invalid credentials.');
           setIsLoading(false);
@@ -89,11 +86,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       } else {
         const result = await registerUser(username, password);
         if (result.success) {
-          // Clear fields
           setPassword('');
-          // Set flag in localStorage because component state might reset or unmount
           localStorage.setItem('registrationSuccess', 'true');
-          // Switch to login view
           setIsLoginView(true);
           setIsLoading(false);
         } else {
@@ -102,7 +96,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         }
       }
     } catch (err) {
-      // In case of system error, ensure flag is cleared if it was set
       localStorage.removeItem('loginSuccess');
       setError('System Error: ' + err);
       setIsLoading(false);
@@ -110,7 +103,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg flex flex-col lg:flex-row text-white font-sans relative">
+    <div className="min-h-screen lg:h-screen bg-dark-bg flex flex-col lg:flex-row text-white font-sans relative overflow-x-hidden lg:overflow-hidden">
       
       {/* Toast Notification */}
       {toast && (
@@ -124,17 +117,17 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
       {/* Branding & Features Section */}
       {/* Mobile: Order 2 (Bottom), Desktop: Order 1 (Left) */}
-      <div className="lg:w-1/2 p-6 lg:p-12 flex flex-col justify-center bg-slate-900 border-t lg:border-t-0 lg:border-r border-dark-border relative overflow-hidden shrink-0 order-2 lg:order-1">
+      <div className="lg:w-1/2 p-6 lg:p-12 flex flex-col justify-center bg-slate-900 border-t lg:border-t-0 lg:border-r border-dark-border relative overflow-hidden shrink-0 order-2 lg:order-1 h-auto lg:h-full">
          {/* Background decoration */}
          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20 lg:opacity-10">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse"></div>
             <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-500 rounded-full blur-3xl opacity-50"></div>
          </div>
 
-         <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left py-8 lg:py-0">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="bg-gradient-to-br from-primary to-emerald-600 p-4 rounded-2xl shadow-lg shadow-primary/20">
-                    <Wallet className="text-slate-900 w-10 h-10 lg:w-12 lg:h-12" />
+         <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left py-8 lg:py-0 max-w-xl mx-auto lg:mx-0">
+            <div className="flex items-center gap-4 mb-6 lg:mb-8">
+                <div className="bg-gradient-to-br from-primary to-emerald-600 p-3 lg:p-4 rounded-2xl shadow-lg shadow-primary/20">
+                    <Wallet className="text-slate-900 w-8 h-8 lg:w-10 lg:h-10" />
                 </div>
                 <div>
                     <h1 className="text-3xl lg:text-5xl font-bold tracking-tight text-white">{t.appName}</h1>
@@ -142,7 +135,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 </div>
             </div>
 
-            <p className="text-slate-300 text-base lg:text-lg mb-10 leading-relaxed max-w-md lg:max-w-none hidden lg:block">
+            <p className="text-slate-300 text-base lg:text-lg mb-8 lg:mb-10 leading-relaxed max-w-md lg:max-w-none hidden lg:block">
                 {language === 'my' ? (
                   <>သင့်ငွေကြေးစီမံခန့်ခွဲမှုအတွက် အကောင်းဆုံးလက်ထောက်။ <br/>မြန်မာဘာသာဖြင့် အသုံးပြုရလွယ်ကူပြီး တိကျသေချာသော စာရင်းအင်းစနစ်။</>
                 ) : language === 'ja' ? (
@@ -152,17 +145,17 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 )}
             </p>
 
-            <div className="space-y-6 mb-10 w-full max-w-sm lg:max-w-none">
+            <div className="space-y-4 lg:space-y-6 mb-8 lg:mb-10 w-full max-w-sm lg:max-w-none">
                 {features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-5 text-slate-300 text-sm lg:text-base p-4 bg-slate-800/40 rounded-xl border border-slate-700/50 hover:bg-slate-800/80 transition group">
-                        <div className="text-primary bg-primary/10 p-2.5 rounded-lg group-hover:bg-primary group-hover:text-slate-900 transition duration-300 shrink-0">{feature.icon}</div>
+                    <div key={idx} className="flex items-center gap-4 text-slate-300 text-sm lg:text-base p-3 lg:p-4 bg-slate-800/40 rounded-xl border border-slate-700/50 hover:bg-slate-800/80 transition group">
+                        <div className="text-primary bg-primary/10 p-2 rounded-lg group-hover:bg-primary group-hover:text-slate-900 transition duration-300 shrink-0">{feature.icon}</div>
                         <span className="font-medium">{feature.text}</span>
                     </div>
                 ))}
             </div>
 
-            {/* Footer matching Dashboard style */}
-            <div className="mt-8 lg:mt-12 text-center lg:text-left flex flex-col items-center lg:items-start gap-1 w-full pt-8 border-t border-slate-800 lg:border-none">
+            {/* Footer */}
+            <div className="mt-4 lg:mt-8 text-center lg:text-left flex flex-col items-center lg:items-start gap-1 w-full pt-6 border-t border-slate-800 lg:border-none">
                  <div className="flex items-center gap-1 font-bold text-slate-500 text-sm">
                      <Copyright size={14} /> {new Date().getFullYear()} {t.appName}. All rights reserved.
                  </div>
@@ -184,11 +177,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
       {/* Auth Form Section */}
       {/* Mobile: Order 1 (Top), Desktop: Order 2 (Right) */}
-      <div className="lg:w-1/2 p-6 lg:p-12 flex items-center justify-center bg-slate-800/30 flex-grow order-1 lg:order-2 min-h-[60vh] lg:min-h-auto backdrop-blur-sm relative">
+      <div className="lg:w-1/2 h-auto lg:h-full p-6 lg:px-12 flex items-center justify-center bg-slate-800/30 flex-grow order-1 lg:order-2 backdrop-blur-sm relative overflow-y-auto lg:overflow-visible">
         
-        {/* Language Selector Removed as per request */}
-
-        <div className="w-full max-w-md space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-right-8 duration-500 mt-8 lg:mt-0">
+        <div className="w-full max-w-md space-y-5 lg:space-y-5 animate-in fade-in slide-in-from-right-8 duration-500 mt-8 lg:mt-0">
             
             {/* Mobile Only Header */}
             <div className="lg:hidden text-center mb-6">
@@ -201,7 +192,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             </div>
 
             <div className="text-center lg:text-left">
-                <h2 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+                <h2 className="text-3xl lg:text-4xl font-bold text-white mb-1.5">
                     {isLoginView ? t.loginTitle : t.registerTitle}
                 </h2>
                 <p className="text-slate-400 text-sm lg:text-base">
@@ -209,34 +200,34 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 </p>
             </div>
 
-            {/* Critical Warning Box */}
-            <div className="bg-amber-900/20 border border-amber-600/30 rounded-xl p-5 flex gap-3 items-start text-left shadow-sm">
-                <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={24} />
-                <div className="text-sm text-amber-200/80 leading-relaxed">
+            {/* Critical Warning Box - Compact Version for Desktop */}
+            <div className="bg-amber-900/20 border border-amber-600/30 rounded-lg p-3 lg:p-4 flex gap-3 items-start text-left shadow-sm">
+                <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={20} />
+                <div className="text-xs lg:text-sm text-amber-200/80 leading-relaxed">
                     <strong>{t.warningTitle}</strong> {t.warningText}
                 </div>
             </div>
 
             {error && (
-                <div className="bg-red-500/10 border border-red-500/50 text-red-200 px-5 py-4 rounded-xl text-sm flex items-center gap-3 animate-in shake">
-                    <AlertTriangle size={20} /> {error}
+                <div className="bg-red-500/10 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm flex items-center gap-3 animate-in shake">
+                    <AlertTriangle size={18} /> {error}
                 </div>
             )}
             
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5">
                 <div>
-                    <label className="block text-slate-300 text-sm font-bold uppercase tracking-wider mb-2">
+                    <label className="block text-slate-300 text-xs lg:text-sm font-bold uppercase tracking-wider mb-1.5">
                         {t.username}
                     </label>
                     <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <User size={20} className="text-slate-500 group-focus-within:text-primary transition"/>
+                            <User size={18} className="text-slate-500 group-focus-within:text-primary transition"/>
                         </div>
                         <input
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-slate-900 border border-slate-700 text-white text-base rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
+                            className="w-full pl-11 pr-4 py-2.5 lg:py-3 bg-slate-900 border border-slate-700 text-white text-base rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
                             placeholder={t.usernamePlaceholder}
                             disabled={isLoading}
                             autoComplete="username"
@@ -245,18 +236,18 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 </div>
                 
                 <div>
-                    <label className="block text-slate-300 text-sm font-bold uppercase tracking-wider mb-2">
+                    <label className="block text-slate-300 text-xs lg:text-sm font-bold uppercase tracking-wider mb-1.5">
                         {t.password}
                     </label>
                     <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Lock size={20} className="text-slate-500 group-focus-within:text-primary transition"/>
+                            <Lock size={18} className="text-slate-500 group-focus-within:text-primary transition"/>
                         </div>
                         <input
                             type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-12 pr-12 py-3 bg-slate-900 border border-slate-700 text-white text-base rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
+                            className="w-full pl-11 pr-11 py-2.5 lg:py-3 bg-slate-900 border border-slate-700 text-white text-base rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
                             placeholder={t.passwordPlaceholder}
                             disabled={isLoading}
                             autoComplete={isLoginView ? "current-password" : "new-password"}
@@ -264,9 +255,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition p-1.5"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition p-1"
                         >
-                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     </div>
                 </div>
@@ -274,21 +265,21 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full bg-gradient-to-r from-emerald-600 to-primary hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 group text-base ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full bg-gradient-to-r from-emerald-600 to-primary hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-2.5 lg:py-3 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 group text-base mt-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isLoading ? (
-                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     ) : (
                         <>
                             {isLoginView ? t.loginBtn : t.registerBtn}
-                            <ArrowRight size={20} className="group-hover:translate-x-1 transition" />
+                            <ArrowRight size={18} className="group-hover:translate-x-1 transition" />
                         </>
                     )}
                 </button>
             </form>
 
-            <div className="text-center pt-8 border-t border-slate-700/50">
-                <p className="text-slate-400 text-sm mb-3">
+            <div className="text-center pt-6 lg:pt-6 border-t border-slate-700/50">
+                <p className="text-slate-400 text-sm mb-2">
                     {isLoginView ? t.noAccount : t.hasAccount}
                 </p>
                 <button
