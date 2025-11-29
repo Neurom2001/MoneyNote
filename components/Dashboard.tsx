@@ -6,7 +6,7 @@ import {
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
   Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
-  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter
+  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, Power
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -81,6 +81,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const [budgetLimit, setBudgetLimit] = useState<number>(0);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [tempBudget, setTempBudget] = useState('');
+  const [isBudgetEnabled, setIsBudgetEnabled] = useState(true);
 
   // Selection & Editing
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -105,9 +106,15 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   // --- Effects ---
   useEffect(() => {
     loadData();
-    // Load budget from local storage
+    
+    // Load budget settings from local storage
     const savedBudget = localStorage.getItem(`budget_${currentUser}`);
     if (savedBudget) setBudgetLimit(parseInt(savedBudget));
+    
+    const savedBudgetEnabled = localStorage.getItem(`budgetEnabled_${currentUser}`);
+    if (savedBudgetEnabled !== null) {
+      setIsBudgetEnabled(savedBudgetEnabled === 'true');
+    }
 
     // Realtime Subscription
     const channel = supabase.channel('realtime_transactions')
@@ -143,6 +150,12 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     const data = await getTransactions();
     setTransactions(data);
     setIsLoading(false);
+  };
+
+  const toggleBudgetFeature = () => {
+    const newState = !isBudgetEnabled;
+    setIsBudgetEnabled(newState);
+    localStorage.setItem(`budgetEnabled_${currentUser}`, String(newState));
   };
 
   const handleSaveBudget = () => {
@@ -465,70 +478,91 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         </div>
 
         {/* Feature 3: Budget Goal */}
-        <div className="bg-dark-card rounded-xl p-4 border border-dark-border">
+        <div className="bg-dark-card rounded-xl p-4 border border-dark-border relative">
             <div className="flex justify-between items-center mb-2">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                    <PieChart size={16} className="text-primary"/> လစဉ် သုံးငွေလျာထားချက် (Budget)
                 </h3>
-                <button 
-                  onClick={() => {
-                      if (isEditingBudget) handleSaveBudget();
-                      else {
-                          setTempBudget(budgetLimit.toString());
-                          setIsEditingBudget(true);
-                      }
-                  }}
-                  className="text-xs text-primary hover:text-emerald-400 underline"
-                >
-                    {isEditingBudget ? 'သိမ်းမည်' : 'ပြင်မည်'}
-                </button>
-            </div>
-            {isEditingBudget ? (
-                <div className="flex gap-2">
-                    <input 
-                       type="number" 
-                       value={tempBudget} 
-                       onChange={(e) => setTempBudget(e.target.value)}
-                       className="w-full bg-slate-700 rounded px-2 py-1 text-white text-sm"
-                       placeholder="ပမာဏထည့်ပါ"
-                    />
-                </div>
-            ) : (
-                <>
-                    <div className="flex justify-between text-xs text-dark-muted mb-1">
-                        <span>သုံးစွဲမှု: {monthlyStats.expense.toLocaleString()}</span>
-                        <span>လျာထားချက်: {budgetLimit > 0 ? budgetLimit.toLocaleString() : 'မသတ်မှတ်ထားပါ'}</span>
-                    </div>
-                    {budgetLimit > 0 && (
-                        <div className="space-y-2 mt-1">
-                             <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
-                                <div 
-                                    className={`h-2.5 rounded-full transition-all duration-500 ${isOverBudget ? 'bg-red-500' : isWarningZone ? 'bg-yellow-500' : 'bg-primary'}`} 
-                                    style={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
-                                ></div>
-                            </div>
-                            
-                            {/* Budget Alerts */}
-                            {isOverBudget && (
-                                <div className="flex items-start gap-2 text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-500/30">
-                                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                                    <span>
-                                       လျာထားချက်ထက် <b className="text-white font-bold">{overSpentAmount.toLocaleString()} ကျပ်</b> ပိုသုံးမိနေပါပြီ!
-                                    </span>
-                                </div>
-                            )}
+                
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={toggleBudgetFeature}
+                    className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border transition ${isBudgetEnabled ? 'bg-primary/20 text-primary border-primary/30' : 'bg-slate-700 text-dark-muted border-slate-600'}`}
+                  >
+                    <Power size={12} /> {isBudgetEnabled ? 'ON' : 'OFF'}
+                  </button>
 
-                            {isWarningZone && (
-                                <div className="flex items-start gap-2 text-xs text-yellow-300 bg-yellow-900/20 p-2 rounded border border-yellow-500/30">
-                                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                                    <span>
-                                       သတိပြုပါ: လျာထားချက်၏ ၈၀% ကျော်နေပါပြီ။ ချွေတာပါ။
-                                    </span>
-                                </div>
-                            )}
+                  {isBudgetEnabled && (
+                    <button 
+                      onClick={() => {
+                          if (isEditingBudget) handleSaveBudget();
+                          else {
+                              setTempBudget(budgetLimit.toString());
+                              setIsEditingBudget(true);
+                          }
+                      }}
+                      className="text-xs text-primary hover:text-emerald-400 underline ml-1"
+                    >
+                        {isEditingBudget ? 'သိမ်းမည်' : 'ပြင်မည်'}
+                    </button>
+                  )}
+                </div>
+            </div>
+            
+            {!isBudgetEnabled ? (
+              <div className="text-xs text-dark-muted italic py-1">
+                ဘတ်ဂျက်စနစ်ကို ပိတ်ထားပါသည်။ ပြန်လည်အသုံးပြုလိုပါက ON ကိုနှိပ်ပါ။
+              </div>
+            ) : (
+              <>
+                {isEditingBudget ? (
+                    <div className="flex gap-2">
+                        <input 
+                          type="number" 
+                          value={tempBudget} 
+                          onChange={(e) => setTempBudget(e.target.value)}
+                          className="w-full bg-slate-700 rounded px-2 py-1 text-white text-sm"
+                          placeholder="ပမာဏထည့်ပါ"
+                        />
+                    </div>
+                ) : (
+                    <>
+                        <div className="flex justify-between text-xs text-dark-muted mb-1">
+                            <span>သုံးစွဲမှု: {monthlyStats.expense.toLocaleString()}</span>
+                            <span>လျာထားချက်: {budgetLimit > 0 ? budgetLimit.toLocaleString() : 'မသတ်မှတ်ထားပါ'}</span>
                         </div>
-                    )}
-                </>
+                        {budgetLimit > 0 && (
+                            <div className="space-y-2 mt-1">
+                                <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                                    <div 
+                                        className={`h-2.5 rounded-full transition-all duration-500 ${isOverBudget ? 'bg-red-500' : isWarningZone ? 'bg-yellow-500' : 'bg-primary'}`} 
+                                        style={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
+                                    ></div>
+                                </div>
+                                
+                                {/* Budget Alerts */}
+                                {isOverBudget && (
+                                    <div className="flex items-start gap-2 text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-500/30">
+                                        <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                        <span>
+                                          လျာထားချက်ထက် <b className="text-white font-bold">{overSpentAmount.toLocaleString()} ကျပ်</b> ပိုသုံးမိနေပါပြီ!
+                                        </span>
+                                    </div>
+                                )}
+
+                                {isWarningZone && (
+                                    <div className="flex items-start gap-2 text-xs text-yellow-300 bg-yellow-900/20 p-2 rounded border border-yellow-500/30">
+                                        <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                        <span>
+                                          သတိပြုပါ: လျာထားချက်၏ ၈၀% ကျော်နေပါပြီ။ ချွေတာပါ။
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </>
+                )}
+              </>
             )}
         </div>
 
@@ -574,10 +608,10 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                         <button
                           key={cat}
                           onClick={() => setSearchQuery(prev => prev === cat ? '' : cat)}
-                          className={`px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap border transition flex items-center gap-1 ${searchQuery === cat ? 'bg-primary text-slate-900 border-primary shadow-sm shadow-emerald-500/20' : 'bg-slate-800 text-dark-muted border-slate-700 hover:border-slate-500 hover:text-white'}`}
+                          className={`px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap border transition flex items-center gap-1 group ${searchQuery === cat ? 'bg-primary text-slate-900 border-primary shadow-sm shadow-emerald-500/20' : 'bg-slate-800 text-dark-muted border-slate-700 hover:border-slate-500 hover:text-white'}`}
                         >
                           {cat}
-                          {searchQuery === cat && <X size={12} className="opacity-75"/>}
+                          {searchQuery === cat && <X size={12} className="opacity-75 group-hover:bg-slate-900/20 rounded-full"/>}
                         </button>
                     ))}
                  </div>
@@ -831,27 +865,37 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                 {selectedTransaction.type === TransactionType.INCOME ? '+' : '-'}{selectedTransaction.amount.toLocaleString()} <span className="text-sm text-dark-muted font-normal">ကျပ်</span>
               </span>
             </div>
-            {showDeleteConfirm ? (
-                 <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 space-y-4 animate-in fade-in slide-in-from-bottom-2">
-                     <div className="flex items-center gap-3 text-red-200">
-                         <AlertCircle className="text-red-500 shrink-0" />
-                         <p className="font-bold text-sm">ဤစာရင်းကို ဖျက်ရန် သေချာပါသလား?</p>
+            
+            {isCurrentMonth ? (
+                // Current Month Actions (Edit/Delete)
+                showDeleteConfirm ? (
+                     <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                         <div className="flex items-center gap-3 text-red-200">
+                             <AlertCircle className="text-red-500 shrink-0" />
+                             <p className="font-bold text-sm">ဤစာရင်းကို ဖျက်ရန် သေချာပါသလား?</p>
+                         </div>
+                         <div className="flex gap-3">
+                             <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600 font-bold text-sm transition">မဖျက်တော့ပါ</button>
+                             <button onClick={confirmDelete} className="flex-1 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-bold text-sm transition shadow-lg shadow-red-900/20">ဖျက်မည်</button>
+                         </div>
                      </div>
-                     <div className="flex gap-3">
-                         <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600 font-bold text-sm transition">မဖျက်တော့ပါ</button>
-                         <button onClick={confirmDelete} className="flex-1 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-bold text-sm transition shadow-lg shadow-red-900/20">ဖျက်မည်</button>
-                     </div>
-                 </div>
+                ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      <button onClick={handleEditClick} className="flex flex-col items-center justify-center gap-2 bg-slate-700 hover:bg-blue-600/20 hover:border-blue-500/50 border border-transparent p-4 rounded-xl transition group">
+                        <div className="bg-blue-500/10 p-3 rounded-full group-hover:bg-blue-500 text-blue-400 group-hover:text-white transition"><Edit size={24} /></div>
+                        <span className="text-sm font-bold text-blue-100 group-hover:text-blue-400">ပြင်ဆင်မည်</span>
+                      </button>
+                      <button onClick={handleRequestDelete} className="flex flex-col items-center justify-center gap-2 bg-slate-700 hover:bg-red-600/20 hover:border-red-500/50 border border-transparent p-4 rounded-xl transition group">
+                         <div className="bg-red-500/10 p-3 rounded-full group-hover:bg-red-500 text-red-400 group-hover:text-white transition"><Trash2 size={24} /></div>
+                        <span className="text-sm font-bold text-red-100 group-hover:text-red-400">ဖျက်မည်</span>
+                      </button>
+                    </div>
+                )
             ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  <button onClick={handleEditClick} className="flex flex-col items-center justify-center gap-2 bg-slate-700 hover:bg-blue-600/20 hover:border-blue-500/50 border border-transparent p-4 rounded-xl transition group">
-                    <div className="bg-blue-500/10 p-3 rounded-full group-hover:bg-blue-500 text-blue-400 group-hover:text-white transition"><Edit size={24} /></div>
-                    <span className="text-sm font-bold text-blue-100 group-hover:text-blue-400">ပြင်ဆင်မည်</span>
-                  </button>
-                  <button onClick={handleRequestDelete} className="flex flex-col items-center justify-center gap-2 bg-slate-700 hover:bg-red-600/20 hover:border-red-500/50 border border-transparent p-4 rounded-xl transition group">
-                     <div className="bg-red-500/10 p-3 rounded-full group-hover:bg-red-500 text-red-400 group-hover:text-white transition"><Trash2 size={24} /></div>
-                    <span className="text-sm font-bold text-red-100 group-hover:text-red-400">ဖျက်မည်</span>
-                  </button>
+                // Past Month (Read Only)
+                <div className="bg-slate-700/50 border border-dark-border rounded-xl p-4 flex items-center justify-center gap-3 text-dark-muted">
+                    <Lock size={20} />
+                    <span className="text-sm font-medium">လဟောင်းစာရင်းများကို ပြင်ဆင်ခွင့် ပိတ်ထားပါသည်။</span>
                 </div>
             )}
           </div>
