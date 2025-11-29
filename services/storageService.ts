@@ -1,14 +1,28 @@
 import { Transaction, TransactionType } from '../types';
 import { supabase } from './supabaseClient';
 
-// Helper to convert username to a fake email for Supabase Auth
-// Since Supabase requires email, but you want "username" login.
-const getEmail = (username: string) => `${username}@burmesetracker.app`;
+// Helper to convert username to a valid fake email for Supabase Auth
+// We strip spaces and special characters to ensure Supabase accepts the format.
+const getEmail = (username: string) => {
+  // 1. Trim whitespace
+  // 2. Remove all spaces (Mg Mg -> MgMg)
+  // 3. Convert to lowercase
+  const cleanName = username.trim().replace(/\s+/g, '').toLowerCase();
+  
+  // Use a dummy domain. This email won't be real, so Email Verification MUST be disabled in Supabase.
+  return `${cleanName}@moneytracker.local`;
+};
 
 export const registerUser = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
   const { data, error } = await supabase.auth.signUp({
     email: getEmail(username),
     password: password,
+    options: {
+      // Store the real display name in metadata
+      data: {
+        display_name: username,
+      }
+    }
   });
 
   if (error) {
@@ -104,4 +118,4 @@ export const deleteTransaction = async (id: string): Promise<boolean> => {
     return false;
   }
   return true;
-};
+}
