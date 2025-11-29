@@ -61,7 +61,7 @@ export const TRANSLATIONS = {
     
     // Table & Search
     searchPlaceholder: "အမျိုးအစား သို့မဟုတ် ပမာဏဖြင့် ရှာရန်...",
-    filters: "Filter Filters:",
+    filters: "Filters:",
     date: "ရက်စွဲ",
     noData: "စာရင်းမရှိသေးပါ",
     items: "ခု",
@@ -84,7 +84,10 @@ export const TRANSLATIONS = {
     // Settings
     settings: "Settings",
     changeCurrency: "Change Currency",
-    changeLanguage: "Change Language",
+    changeLanguage: "ဘာသာစကား",
+    changeTheme: "ဒီဇိုင်း (Theme) ပြောင်းရန်",
+    dayMode: "နေ့ခင်းပုံစံ (Day Mode)",
+    nightMode: "ညပုံစံ (Night Mode)",
     feedback: "Feedback",
     export: "Export CSV",
     logout: "Logout",
@@ -201,7 +204,10 @@ export const TRANSLATIONS = {
     // Settings
     settings: "Settings",
     changeCurrency: "Change Currency",
-    changeLanguage: "Change Language",
+    changeLanguage: "Language",
+    changeTheme: "Change Theme",
+    dayMode: "Day Mode",
+    nightMode: "Night Mode",
     feedback: "Feedback",
     export: "Export CSV",
     logout: "Logout",
@@ -319,6 +325,9 @@ export const TRANSLATIONS = {
     settings: "設定",
     changeCurrency: "通貨変更",
     changeLanguage: "言語変更",
+    changeTheme: "テーマ変更",
+    dayMode: "デイモード",
+    nightMode: "ナイトモード",
     feedback: "フィードバック",
     export: "CSV出力",
     logout: "ログアウト",

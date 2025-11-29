@@ -33,8 +33,10 @@ export interface BudgetSettings {
 }
 
 export type Language = 'my' | 'en' | 'ja';
+export type Theme = 'light' | 'dark';
 
 export interface UserSettings {
   currency: string;
   language: Language;
+  theme: Theme;
 }
