@@ -76,6 +76,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   
   // Feature 1: Search
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   
   // Feature 3: Budget
   const [budgetLimit, setBudgetLimit] = useState<number>(0);
@@ -448,7 +449,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
             <button onClick={() => setShowExportConfirm(true)} className="text-dark-muted hover:text-emerald-400 transition text-xs border border-dark-border px-2 py-1.5 rounded flex items-center gap-1">
                 <Download size={14} /> <span className="hidden sm:inline">Export</span>
             </button>
-            <button onClick={() => setShowLogoutConfirm(true)} className="text-dark-muted hover:text-red-500 transition text-xs border border-dark-border px-2 py-1.5 rounded flex items-center gap-1">
+            <button onClick={() => setShowLogoutConfirm(true)} className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition text-xs border border-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold">
                 <LogOut size={14} /> <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
@@ -593,6 +594,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                          type="text" 
                          placeholder="အမျိုးအစား သို့မဟုတ် ပမာဏဖြင့် ရှာရန်..." 
                          value={searchQuery}
+                         onFocus={() => setIsSearchFocused(true)}
+                         onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                          onChange={(e) => setSearchQuery(e.target.value)}
                          className="w-full bg-slate-900 border border-dark-border text-white text-sm rounded-lg pl-10 pr-10 py-2 focus:outline-none focus:border-primary transition"
                      />
@@ -606,22 +609,25 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                      )}
                  </div>
                  
-                 {/* Category Chips */}
-                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide no-scrollbar">
-                    <div className="flex items-center gap-1 text-dark-muted text-[10px] uppercase font-bold shrink-0">
-                        <Filter size={10} /> Filters:
-                    </div>
-                    {allSearchCategories.map(cat => (
-                        <button
-                          key={cat}
-                          onClick={() => setSearchQuery(prev => prev === cat ? '' : cat)}
-                          className={`px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap border transition flex items-center gap-1 group ${searchQuery === cat ? 'bg-primary text-slate-900 border-primary shadow-sm shadow-emerald-500/20' : 'bg-slate-800 text-dark-muted border-slate-700 hover:border-slate-500 hover:text-white'}`}
-                        >
-                          {cat}
-                          {searchQuery === cat && <X size={12} className="opacity-75 group-hover:bg-slate-900/20 rounded-full"/>}
-                        </button>
-                    ))}
-                 </div>
+                 {/* Category Chips - Only visible when search is focused or active */}
+                 {(isSearchFocused || searchQuery) && (
+                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide no-scrollbar animate-in fade-in slide-in-from-top-2">
+                        <div className="flex items-center gap-1 text-dark-muted text-[10px] uppercase font-bold shrink-0">
+                            <Filter size={10} /> Filters:
+                        </div>
+                        {allSearchCategories.map(cat => (
+                            <button
+                              key={cat}
+                              onMouseDown={(e) => e.preventDefault()} // Prevent input blur when clicking
+                              onClick={() => setSearchQuery(prev => prev === cat ? '' : cat)}
+                              className={`px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap border transition flex items-center gap-1 group ${searchQuery === cat ? 'bg-primary text-slate-900 border-primary shadow-sm shadow-emerald-500/20' : 'bg-slate-800 text-dark-muted border-slate-700 hover:border-slate-500 hover:text-white'}`}
+                            >
+                              {cat}
+                              {searchQuery === cat && <X size={12} className="opacity-75 group-hover:bg-slate-900/20 rounded-full"/>}
+                            </button>
+                        ))}
+                     </div>
+                 )}
             </div>
           </div>
 
