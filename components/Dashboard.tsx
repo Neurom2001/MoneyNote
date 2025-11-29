@@ -43,6 +43,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   // --- State ---
   const [language, setLanguage] = useState<Language>((localStorage.getItem('language') as Language) || 'my');
   const t = TRANSLATIONS[language];
+  
+  const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
 
   // Helper function to generate categories based on current language
   const getExpenseCategories = () => [
@@ -125,8 +127,6 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   
-  const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
-  
   // PWA Install Prompt
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -139,10 +139,24 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   // Visualization
   const [chartType, setChartType] = useState<ChartType>('bar');
 
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   // --- Effects ---
   useEffect(() => {
     localStorage.setItem('language', language);
   }, [language]);
+
+  // Check for login success flag on mount
+  useEffect(() => {
+    const loginSuccess = localStorage.getItem('loginSuccess');
+    if (loginSuccess === 'true') {
+        showToast(language === 'my' ? 'ဝင်ရောက်ခြင်း အောင်မြင်ပါသည်' : 'Login successful', 'success');
+        localStorage.removeItem('loginSuccess');
+    }
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -186,10 +200,6 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     localStorage.setItem('currency', currency);
   }, [currency]);
 
-  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const handleCurrencyChange = (newCurrency: string) => {
     setCurrency(newCurrency);

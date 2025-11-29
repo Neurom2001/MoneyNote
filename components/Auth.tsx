@@ -72,14 +72,17 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
     try {
       if (isLoginView) {
+        // Set a flag so Dashboard knows to show the "Login Successful" toast
+        // We set this before calling loginUser because the app view might switch immediately upon auth state change
+        localStorage.setItem('loginSuccess', 'true');
+
         const result = await loginUser(username, password);
         if (result.success) {
-          showToast(language === 'my' ? 'ဝင်ရောက်ခြင်း အောင်မြင်ပါသည်' : 'Login successful', 'success');
-          // Delay briefly so user sees the toast before switching views
-          setTimeout(() => {
-            onLogin(username);
-          }, 1000);
+           // Success! The App component listens to Supabase auth changes and will switch to Dashboard automatically.
+           // The Dashboard component will check for 'loginSuccess' flag and show the toast.
         } else {
+          // Login failed, clear the flag
+          localStorage.removeItem('loginSuccess');
           setError(language === 'my' ? 'အကောင့်ဝင်မရပါ (သို့) စကားဝှက်မှားယွင်းနေပါသည်။' : 'Login failed or invalid credentials.');
           setIsLoading(false);
         }
@@ -99,6 +102,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         }
       }
     } catch (err) {
+      // In case of system error, ensure flag is cleared if it was set
+      localStorage.removeItem('loginSuccess');
       setError('System Error: ' + err);
       setIsLoading(false);
     }
