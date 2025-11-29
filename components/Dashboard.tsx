@@ -82,7 +82,6 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const [budgetLimit, setBudgetLimit] = useState<number>(0);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [tempBudget, setTempBudget] = useState('');
-  const [isBudgetEnabled, setIsBudgetEnabled] = useState(true);
 
   // Selection & Editing
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -113,11 +112,6 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     const savedBudget = localStorage.getItem(`budget_${currentUser}`);
     if (savedBudget) setBudgetLimit(parseInt(savedBudget));
     
-    const savedBudgetEnabled = localStorage.getItem(`budgetEnabled_${currentUser}`);
-    if (savedBudgetEnabled !== null) {
-      setIsBudgetEnabled(savedBudgetEnabled === 'true');
-    }
-
     // Realtime Subscription
     const channel = supabase.channel('realtime_transactions')
       .on(
@@ -152,13 +146,6 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     const data = await getTransactions();
     setTransactions(data);
     setIsLoading(false);
-  };
-
-  const toggleBudgetFeature = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent modal opening if user clicks toggle
-    const newState = !isBudgetEnabled;
-    setIsBudgetEnabled(newState);
-    localStorage.setItem(`budgetEnabled_${currentUser}`, String(newState));
   };
 
   const openBudgetModal = () => {
@@ -504,81 +491,62 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                    <PieChart size={16} className="text-primary"/> လစဉ် သုံးငွေလျာထားချက် (Budget)
                 </h3>
                 
-                <div className="flex items-center gap-3">
-                  {/* Toggle Switch */}
-                  <div className="flex items-center gap-2 cursor-pointer" onClick={toggleBudgetFeature}>
-                      <span className={`text-[10px] font-bold ${isBudgetEnabled ? 'text-white' : 'text-dark-muted'}`}>
-                          {isBudgetEnabled ? 'ON' : 'OFF'}
-                      </span>
-                      <div className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${isBudgetEnabled ? 'bg-primary' : 'bg-slate-600'}`}>
-                          <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ease-in-out ${isBudgetEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-                      </div>
-                  </div>
-
-                  {isBudgetEnabled && budgetLimit > 0 && (
-                    <button 
-                      onClick={openBudgetModal}
-                      className="text-dark-muted hover:text-white transition p-1"
-                    >
-                        <Settings size={18} />
-                    </button>
-                  )}
-                </div>
+                {/* Only show settings if budget is set */}
+                {budgetLimit > 0 && (
+                  <button 
+                    onClick={openBudgetModal}
+                    className="text-dark-muted hover:text-white transition p-1"
+                  >
+                      <Settings size={18} />
+                  </button>
+                )}
             </div>
             
-            {!isBudgetEnabled ? (
-              <div className="text-xs text-dark-muted italic py-1">
-                ဘတ်ဂျက်စနစ်ကို ပိတ်ထားပါသည်။ ပြန်လည်အသုံးပြုလိုပါက ဖွင့်ပေးပါ။
-              </div>
+            {budgetLimit === 0 ? (
+                <div className="py-2 text-center">
+                    <button 
+                        onClick={openBudgetModal}
+                        className="bg-slate-700/50 hover:bg-slate-700 border border-dashed border-slate-500 text-emerald-400 font-bold py-3 px-6 rounded-xl transition w-full flex flex-col items-center justify-center gap-2"
+                    >
+                        <Target size={24} className="mb-1" />
+                        <span>🎯 လစဉ်သုံးငွေ လျာထားချက် သတ်မှတ်မည်</span>
+                        <span className="text-[10px] text-dark-muted font-normal">ချွေတာလိုသော ပမာဏကို သတ်မှတ်ပြီး စီမံပါ</span>
+                    </button>
+                </div>
             ) : (
-              <>
-                {budgetLimit === 0 ? (
-                    <div className="py-2 text-center">
-                        <button 
-                            onClick={openBudgetModal}
-                            className="bg-slate-700/50 hover:bg-slate-700 border border-dashed border-slate-500 text-emerald-400 font-bold py-3 px-6 rounded-xl transition w-full flex flex-col items-center justify-center gap-2"
-                        >
-                            <Target size={24} className="mb-1" />
-                            <span>🎯 လစဉ်သုံးငွေ လျာထားချက် သတ်မှတ်မည်</span>
-                            <span className="text-[10px] text-dark-muted font-normal">ချွေတာလိုသော ပမာဏကို သတ်မှတ်ပြီး စီမံပါ</span>
-                        </button>
+                <>
+                    <div className="flex justify-between text-xs text-dark-muted mb-1">
+                        <span>သုံးစွဲမှု: {monthlyStats.expense.toLocaleString()}</span>
+                        <span>လျာထားချက်: {budgetLimit > 0 ? budgetLimit.toLocaleString() : 'မသတ်မှတ်ထားပါ'}</span>
                     </div>
-                ) : (
-                    <>
-                        <div className="flex justify-between text-xs text-dark-muted mb-1">
-                            <span>သုံးစွဲမှု: {monthlyStats.expense.toLocaleString()}</span>
-                            <span>လျာထားချက်: {budgetLimit > 0 ? budgetLimit.toLocaleString() : 'မသတ်မှတ်ထားပါ'}</span>
+                    <div className="space-y-2 mt-1">
+                        <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                            <div 
+                                className={`h-2.5 rounded-full transition-all duration-500 ${isOverBudget ? 'bg-red-500' : isWarningZone ? 'bg-yellow-500' : 'bg-primary'}`} 
+                                style={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
+                            ></div>
                         </div>
-                        <div className="space-y-2 mt-1">
-                            <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
-                                <div 
-                                    className={`h-2.5 rounded-full transition-all duration-500 ${isOverBudget ? 'bg-red-500' : isWarningZone ? 'bg-yellow-500' : 'bg-primary'}`} 
-                                    style={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
-                                ></div>
+                        
+                        {/* Budget Alerts */}
+                        {isOverBudget && (
+                            <div className="flex items-start gap-2 text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-500/30">
+                                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                <span>
+                                    လျာထားချက်ထက် <b className="text-white font-bold">{overSpentAmount.toLocaleString()} ကျပ်</b> ပိုသုံးမိနေပါပြီ!
+                                </span>
                             </div>
-                            
-                            {/* Budget Alerts */}
-                            {isOverBudget && (
-                                <div className="flex items-start gap-2 text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-500/30">
-                                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                                    <span>
-                                        လျာထားချက်ထက် <b className="text-white font-bold">{overSpentAmount.toLocaleString()} ကျပ်</b> ပိုသုံးမိနေပါပြီ!
-                                    </span>
-                                </div>
-                            )}
+                        )}
 
-                            {isWarningZone && (
-                                <div className="flex items-start gap-2 text-xs text-yellow-300 bg-yellow-900/20 p-2 rounded border border-yellow-500/30">
-                                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                                    <span>
-                                        သတိပြုပါ: လျာထားချက်၏ ၈၀% ကျော်နေပါပြီ။ ချွေတာပါ။
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                )}
-              </>
+                        {isWarningZone && (
+                            <div className="flex items-start gap-2 text-xs text-yellow-300 bg-yellow-900/20 p-2 rounded border border-yellow-500/30">
+                                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                <span>
+                                    သတိပြုပါ: လျာထားချက်၏ ၈၀% ကျော်နေပါပြီ။ ချွေတာပါ။
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </>
             )}
         </div>
 
