@@ -48,6 +48,9 @@ export const logoutUser = async () => {
 };
 
 export const getTransactions = async (): Promise<Transaction[]> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
@@ -62,9 +65,6 @@ export const getTransactions = async (): Promise<Transaction[]> => {
 };
 
 export const saveTransaction = async (transaction: Transaction): Promise<{ data: Transaction | null; error: string | null }> => {
-  // We don't send ID, created_at, or user_id (Supabase handles these)
-  // We need to get the current user first to ensure session is active, though RLS handles it
-  
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: "User session not found. Please login again." };
 

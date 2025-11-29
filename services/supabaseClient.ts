@@ -1,12 +1,13 @@
+/// <reference types="vite/client" />
 import { createClient } from '@supabase/supabase-js';
 
-// Vercel/Vite uses import.meta.env for environment variables
-// Casting to any to avoid "Property 'env' does not exist on type 'ImportMeta'" TS error
-const SUPABASE_URL = (import.meta as any).env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
+// Standard Vite environment variable access
+// Note: We use import.meta.env.VITE_KEY directly to ensure Vite replaces it during build.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error("Supabase Keys are missing!");
+  console.error("Supabase Keys are missing! Check your .env file or Vercel settings.");
 }
 
 export const supabase = createClient(

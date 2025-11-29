@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, TransactionType } from '../types';
 import { getTransactions, saveTransaction, deleteTransaction, updateTransaction, logoutUser } from '../services/storageService';
+import { supabase } from '../services/supabaseClient';
 import { 
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
   Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
-  Banknote, TrendingUp, Wallet, ArrowLeftRight
+  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -84,7 +85,12 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   // Selection & Editing
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // Confirmation Modals
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
+  
   const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
 
   // Sorting
@@ -102,6 +108,27 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     // Load budget from local storage
     const savedBudget = localStorage.getItem(`budget_${currentUser}`);
     if (savedBudget) setBudgetLimit(parseInt(savedBudget));
+
+    // Realtime Subscription
+    const channel = supabase.channel('realtime_transactions')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+        },
+        () => {
+          // When any change happens in DB, reload data
+          // This keeps all tabs/devices in sync
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
@@ -111,7 +138,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   };
 
   const loadData = async () => {
-    setIsLoading(true);
+    // Only show loading spinner on initial load to avoid flickering during realtime updates
+    if (transactions.length === 0) setIsLoading(true);
     const data = await getTransactions();
     setTransactions(data);
     setIsLoading(false);
@@ -144,7 +172,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
           };
           const { success, error } = await updateTransaction(updatedPayload);
           if (success) {
-            setTransactions(prev => prev.map(t => t.id === editingId ? updatedPayload : t));
+            // Realtime will handle the update, but optimistic UI update is fine too
+            // setTransactions(prev => prev.map(t => t.id === editingId ? updatedPayload : t));
             showToast('စာရင်း ပြင်ဆင်ပြီးပါပြီ', 'success');
           } else {
             showToast('ပြင်ဆင်မရပါ: ' + (error || 'Unknown error'), 'error');
@@ -160,7 +189,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         };
         const { data, error } = await saveTransaction(newTransactionPayload);
         if (data) {
-          setTransactions(prev => [...prev, data]);
+          // Realtime will handle the update
+          // setTransactions(prev => [...prev, data]);
           showToast('စာရင်းသစ် ထည့်ပြီးပါပြီ', 'success');
         } else {
           showToast('စာရင်းထည့်မရပါ: ' + (error || 'Database error'), 'error');
@@ -203,7 +233,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     if (!selectedTransaction) return;
     const { success, error } = await deleteTransaction(selectedTransaction.id);
     if (success) {
-      setTransactions(prev => prev.filter(t => t.id !== selectedTransaction.id));
+      // Realtime will handle removal
+      // setTransactions(prev => prev.filter(t => t.id !== selectedTransaction.id));
       showToast('စာရင်း ဖျက်ပြီးပါပြီ', 'success');
     } else {
       showToast('ဖျက်မရပါ: ' + (error || 'Unknown error'), 'error');
@@ -226,10 +257,12 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `money_tracker_${currentUser}.csv`);
+    link.setAttribute("download", `MoneyNote_${currentUser}_${getLocalDate()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setShowExportConfirm(false);
+    showToast("CSV ဒေါင်းလုဒ်လုပ်ပြီးပါပြီ");
   };
 
   const handleSort = (key: SortKey) => {
@@ -360,7 +393,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg pb-24 text-dark-text font-sans relative">
+    <div className="min-h-screen bg-dark-bg pb-24 text-dark-text font-sans relative flex flex-col">
       {/* Toast */}
       {toast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-300">
@@ -374,23 +407,34 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
       {/* Header */}
       <header className="bg-dark-card shadow-md sticky top-0 z-20 border-b border-dark-border">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold text-white">ငွေစာရင်း</h1>
-            <p className="text-xs text-dark-muted">အသုံးပြုသူ: {currentUser}</p>
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/20 p-2 rounded-lg">
+                <Wallet className="text-primary" size={24} />
+            </div>
+            <div>
+                <h1 className="text-xl font-bold text-white leading-tight">MoneyNote</h1>
+                <p className="text-[10px] text-dark-muted">Smart Finance Tracker</p>
+            </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={handleExportCSV} className="text-dark-muted hover:text-emerald-400 transition text-xs border border-dark-border px-2 py-1 rounded flex items-center gap-1">
-                <Download size={14} /> Export
+            <button onClick={() => setShowExportConfirm(true)} className="text-dark-muted hover:text-emerald-400 transition text-xs border border-dark-border px-2 py-1.5 rounded flex items-center gap-1">
+                <Download size={14} /> <span className="hidden sm:inline">Export</span>
             </button>
-            <button onClick={handleLogout} className="text-dark-muted hover:text-red-500 transition text-xs border border-dark-border px-2 py-1 rounded flex items-center gap-1">
-                <LogOut size={14} /> ထွက်မည်
+            <button onClick={() => setShowLogoutConfirm(true)} className="text-dark-muted hover:text-red-500 transition text-xs border border-dark-border px-2 py-1.5 rounded flex items-center gap-1">
+                <LogOut size={14} /> <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6 flex-grow w-full">
         
+        {/* User Welcome */}
+        <div className="flex items-center justify-between text-xs text-dark-muted px-1">
+            <span>မင်္ဂလာပါ, <b className="text-white">{currentUser}</b></span>
+            <span>{getLocalDate()}</span>
+        </div>
+
         {/* Monthly Stats Summary */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4">
              <div className="bg-dark-card p-3 rounded-xl border border-dark-border flex flex-col items-center justify-center shadow-sm">
@@ -473,7 +517,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                  </div>
                  <input 
                      type="text" 
-                     placeholder="စာရင်း ရှာဖွေရန်..." 
+                     placeholder="အမျိုးအစား (Category) သို့မဟုတ် ပမာဏဖြင့် ရှာရန်..." 
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
                      className="w-full bg-slate-900 border border-dark-border text-white text-sm rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-primary transition"
@@ -600,6 +644,20 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="text-center py-8 mt-4 border-t border-dark-border bg-slate-900/50 text-dark-muted text-xs flex flex-col items-center justify-center gap-2">
+         <div className="flex items-center gap-1 font-bold text-slate-500">
+             <Copyright size={12} /> {new Date().getFullYear()} MoneyNote. All rights reserved.
+         </div>
+         <div className="flex items-center gap-1 text-primary/80">
+             <span className="opacity-75">Brought to you by</span> 
+             <a href="#" className="font-bold hover:underline hover:text-primary">@swelmyel</a>
+         </div>
+         <div className="mt-2 text-[10px] text-slate-600">
+             Made with <Heart size={10} className="inline text-red-500 mx-0.5" fill="currentColor"/> in Myanmar
+         </div>
+      </footer>
 
       {/* FAB */}
       {isCurrentMonth && (
@@ -740,6 +798,45 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
           </div>
         </div>
       )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+           <div className="bg-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200">
+               <div className="flex items-center gap-3">
+                   <div className="bg-red-500/10 p-3 rounded-full">
+                       <LogOut className="text-red-500" size={24} />
+                   </div>
+                   <h3 className="text-lg font-bold text-white">အကောင့်ထွက်မည်</h3>
+               </div>
+               <p className="text-dark-muted text-sm">အကောင့်မှ ထွက်ရန် သေချာပါသလား?</p>
+               <div className="flex gap-3 pt-2">
+                   <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-2.5 rounded-xl bg-slate-700 text-white hover:bg-slate-600 font-bold text-sm transition">မထွက်တော့ပါ</button>
+                   <button onClick={handleLogout} className="flex-1 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 font-bold text-sm transition shadow-lg shadow-red-900/20">ထွက်မည်</button>
+               </div>
+           </div>
+        </div>
+      )}
+
+      {/* Export Confirmation Modal */}
+      {showExportConfirm && (
+        <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+           <div className="bg-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200">
+               <div className="flex items-center gap-3">
+                   <div className="bg-emerald-500/10 p-3 rounded-full">
+                       <Download className="text-emerald-500" size={24} />
+                   </div>
+                   <h3 className="text-lg font-bold text-white">CSV Export</h3>
+               </div>
+               <p className="text-dark-muted text-sm">လက်ရှိစာရင်းများကို CSV ဖိုင်အနေဖြင့် ဒေါင်းလုဒ်ရယူမည်လား?</p>
+               <div className="flex gap-3 pt-2">
+                   <button onClick={() => setShowExportConfirm(false)} className="flex-1 py-2.5 rounded-xl bg-slate-700 text-white hover:bg-slate-600 font-bold text-sm transition">မလုပ်တော့ပါ</button>
+                   <button onClick={handleExportCSV} className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-slate-900 hover:bg-emerald-500 font-bold text-sm transition shadow-lg shadow-emerald-900/20">ရယူမည်</button>
+               </div>
+           </div>
+        </div>
+      )}
+
     </div>
   );
 };
