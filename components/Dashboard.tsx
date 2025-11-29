@@ -6,7 +6,7 @@ import {
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
   Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
-  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, Power
+  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -484,13 +484,16 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                    <PieChart size={16} className="text-primary"/> လစဉ် သုံးငွေလျာထားချက် (Budget)
                 </h3>
                 
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={toggleBudgetFeature}
-                    className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border transition ${isBudgetEnabled ? 'bg-primary/20 text-primary border-primary/30' : 'bg-slate-700 text-dark-muted border-slate-600'}`}
-                  >
-                    <Power size={12} /> {isBudgetEnabled ? 'ON' : 'OFF'}
-                  </button>
+                <div className="flex items-center gap-3">
+                  {/* Toggle Switch */}
+                  <div className="flex items-center gap-2 cursor-pointer" onClick={toggleBudgetFeature}>
+                      <span className={`text-[10px] font-bold ${isBudgetEnabled ? 'text-white' : 'text-dark-muted'}`}>
+                          {isBudgetEnabled ? 'ON' : 'OFF'}
+                      </span>
+                      <div className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${isBudgetEnabled ? 'bg-primary' : 'bg-slate-600'}`}>
+                          <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ease-in-out ${isBudgetEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                      </div>
+                  </div>
 
                   {isBudgetEnabled && (
                     <button 
@@ -511,7 +514,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
             
             {!isBudgetEnabled ? (
               <div className="text-xs text-dark-muted italic py-1">
-                ဘတ်ဂျက်စနစ်ကို ပိတ်ထားပါသည်။ ပြန်လည်အသုံးပြုလိုပါက ON ကိုနှိပ်ပါ။
+                ဘတ်ဂျက်စနစ်ကို ပိတ်ထားပါသည်။ ပြန်လည်အသုံးပြုလိုပါက ဖွင့်ပေးပါ။
               </div>
             ) : (
               <>

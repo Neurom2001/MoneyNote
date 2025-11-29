@@ -69,60 +69,64 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     <div className="min-h-screen bg-dark-bg flex flex-col lg:flex-row text-white font-sans">
       
       {/* Left Section: Branding & Features */}
-      <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center bg-slate-900 border-b lg:border-b-0 lg:border-r border-dark-border relative overflow-hidden">
+      {/* On Mobile: Only show Logo and Title concisely. Hide extra text/features to save space */}
+      <div className="lg:w-1/2 p-6 lg:p-12 flex flex-col justify-center bg-slate-900 border-b lg:border-b-0 lg:border-r border-dark-border relative overflow-hidden shrink-0">
          {/* Background decoration */}
          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-10">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
             <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-500 rounded-full blur-3xl"></div>
          </div>
 
-         <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="bg-primary/20 p-3 rounded-xl">
-                    <Wallet className="text-primary w-10 h-10" />
+         <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left">
+            <div className="flex items-center gap-3 mb-2 lg:mb-6">
+                <div className="bg-primary/20 p-2 lg:p-3 rounded-xl">
+                    <Wallet className="text-primary w-8 h-8 lg:w-10 lg:h-10" />
                 </div>
                 <div>
-                    <h1 className="text-4xl font-bold tracking-tight text-white">MoneyNote</h1>
-                    <p className="text-emerald-400 font-medium">Smart Finance Tracker</p>
+                    <h1 className="text-2xl lg:text-4xl font-bold tracking-tight text-white">MoneyNote</h1>
+                    <p className="text-emerald-400 font-medium text-xs lg:text-base">Smart Finance Tracker</p>
                 </div>
             </div>
 
-            <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-                သင့်ငွေကြေးစီမံခန့်ခွဲမှုအတွက် အကောင်းဆုံးလက်ထောက်။ <br/>
-                မြန်မာဘာသာဖြင့် အသုံးပြုရလွယ်ကူပြီး တိကျသေချာသော စာရင်းအင်းစနစ်။
-            </p>
+            {/* Desktop Only Content */}
+            <div className="hidden lg:block">
+                <p className="text-slate-300 text-lg mb-8 leading-relaxed">
+                    သင့်ငွေကြေးစီမံခန့်ခွဲမှုအတွက် အကောင်းဆုံးလက်ထောက်။ <br/>
+                    မြန်မာဘာသာဖြင့် အသုံးပြုရလွယ်ကူပြီး တိကျသေချာသော စာရင်းအင်းစနစ်။
+                </p>
 
-            <div className="space-y-4">
-                {features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-slate-300">
-                        <div className="text-primary">{feature.icon}</div>
-                        <span>{feature.text}</span>
-                    </div>
-                ))}
-            </div>
+                <div className="space-y-4">
+                    {features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-3 text-slate-300">
+                            <div className="text-primary">{feature.icon}</div>
+                            <span>{feature.text}</span>
+                        </div>
+                    ))}
+                </div>
 
-            <div className="mt-12 text-xs text-slate-500">
-                &copy; {new Date().getFullYear()} MoneyNote. Built for Myanmar Users.
+                <div className="mt-12 text-xs text-slate-500">
+                    &copy; {new Date().getFullYear()} MoneyNote. Built for Myanmar Users.
+                </div>
             </div>
          </div>
       </div>
 
       {/* Right Section: Auth Form */}
-      <div className="lg:w-1/2 p-6 lg:p-12 flex items-center justify-center bg-slate-800/50">
-        <div className="w-full max-w-md space-y-8">
+      <div className="lg:w-1/2 p-6 lg:p-12 flex items-center justify-center bg-slate-800/50 flex-grow">
+        <div className="w-full max-w-md space-y-6 lg:space-y-8">
             <div className="text-center lg:text-left">
-                <h2 className="text-3xl font-bold text-white mb-2">
+                <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
                     {isLoginView ? 'ကြိုဆိုပါတယ်' : 'အကောင့်သစ်စတင်ရန်'}
                 </h2>
-                <p className="text-slate-400">
+                <p className="text-slate-400 text-sm lg:text-base">
                     {isLoginView ? 'သင့်ငွေစာရင်းများကို ကြည့်ရှုရန် ဝင်ရောက်ပါ' : 'မိနစ်ပိုင်းအတွင်း အကောင့်ဖွင့်ပြီး စတင်လိုက်ပါ'}
                 </p>
             </div>
 
             {/* Critical Warning Box */}
-            <div className="bg-amber-900/30 border border-amber-600/50 rounded-lg p-4 flex gap-3 items-start">
+            <div className="bg-amber-900/30 border border-amber-600/50 rounded-lg p-3 lg:p-4 flex gap-3 items-start text-left">
                 <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={20} />
-                <div className="text-sm text-amber-200">
+                <div className="text-xs lg:text-sm text-amber-200">
                     <strong>သတိပြုရန်:</strong> ဤစနစ်သည် အီးမေးလ်မလိုဘဲ အသုံးပြုနိုင်သော်လည်း၊ 
                     <span className="text-white font-bold underline decoration-amber-500 mx-1">စကားဝှက်မေ့သွားပါက ပြန်ယူ၍ မရနိုင်ပါ။</span> 
                     ထို့ကြောင့် User Name နှင့် Password ကို သေချာစွာ မှတ်သားထားပါ။
@@ -141,7 +145,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5">
                 <div>
                     <label className="block text-slate-300 text-sm font-bold mb-2">
                         အသုံးပြုသူအမည် (User Name)
