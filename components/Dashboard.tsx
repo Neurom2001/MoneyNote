@@ -4,7 +4,8 @@ import { getTransactions, saveTransaction, deleteTransaction, updateTransaction,
 import { 
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
-  Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign
+  Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
+  Banknote, TrendingUp, Wallet, ArrowLeftRight
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -20,8 +21,9 @@ type SortKey = 'date' | 'label' | 'amount';
 type SortDirection = 'asc' | 'desc';
 type ChartType = 'bar' | 'line' | 'area';
 
-// Predefined Categories with Icons
-const CATEGORIES = [
+// --- Categories Configuration ---
+
+const EXPENSE_CATEGORIES = [
   { label: 'အစားအသောက်', icon: <Utensils size={20} /> },
   { label: 'လမ်းစရိတ်', icon: <Bus size={20} /> },
   { label: 'ဈေးဝယ်', icon: <ShoppingBag size={20} /> },
@@ -31,6 +33,15 @@ const CATEGORIES = [
   { label: 'လက်ဆောင်/အလှူ', icon: <Gift size={20} /> },
   { label: 'လုပ်ငန်းသုံး', icon: <Briefcase size={20} /> },
   { label: 'ပညာရေး', icon: <GraduationCap size={20} /> },
+  { label: 'အထွေထွေ', icon: <CircleDollarSign size={20} /> },
+];
+
+const INCOME_CATEGORIES = [
+  { label: 'လစာ', icon: <Banknote size={20} /> },
+  { label: 'ဘောနပ်စ်', icon: <TrendingUp size={20} /> },
+  { label: 'လုပ်ငန်း/အရောင်း', icon: <ShoppingBag size={20} /> },
+  { label: 'မုန့်ဖိုး', icon: <Wallet size={20} /> },
+  { label: 'ပြန်ရငွေ', icon: <ArrowLeftRight size={20} /> },
   { label: 'အထွေထွေ', icon: <CircleDollarSign size={20} /> },
 ];
 
@@ -337,6 +348,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
   const isCurrentMonth = filterDate === currentMonth;
 
+  // Determine current categories based on selected transaction type
+  const currentCategories = type === TransactionType.INCOME ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
   if (isLoading && transactions.length === 0) {
     return (
         <div className="min-h-screen bg-dark-bg flex items-center justify-center text-emerald-500">
@@ -442,54 +456,6 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
             )}
         </div>
 
-        {/* Feature 1: Charts Section */}
-        {transactions.length > 0 && (
-          <div className="bg-dark-card rounded-xl p-4 border border-dark-border overflow-hidden">
-             <div className="flex justify-between items-center mb-4">
-                 <h3 className="text-sm font-bold text-white">နေ့စဉ် ငွေဝင်/ထွက် နှိုင်းယှဉ်ချက်</h3>
-                 <div className="flex bg-slate-800 rounded-lg p-1 gap-1">
-                     <button onClick={() => setChartType('bar')} className={`p-1.5 rounded ${chartType === 'bar' ? 'bg-slate-600 text-white' : 'text-dark-muted hover:text-white'}`}><BarChart3 size={16}/></button>
-                     <button onClick={() => setChartType('line')} className={`p-1.5 rounded ${chartType === 'line' ? 'bg-slate-600 text-white' : 'text-dark-muted hover:text-white'}`}><LineChartIcon size={16}/></button>
-                 </div>
-             </div>
-             <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    {chartType === 'bar' ? (
-                        <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
-                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }} />
-                            <Legend />
-                            <Bar dataKey="income" name="ဝင်ငွေ" fill="#10b981" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="expense" name="ထွက်ငွေ" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    ) : chartType === 'line' ? (
-                        <LineChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
-                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }} />
-                            <Legend />
-                            <Line type="monotone" dataKey="income" name="ဝင်ငွေ" stroke="#10b981" strokeWidth={2} dot={false} />
-                            <Line type="monotone" dataKey="expense" name="ထွက်ငွေ" stroke="#ef4444" strokeWidth={2} dot={false} />
-                        </LineChart>
-                    ) : (
-                        <AreaChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
-                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }} />
-                            <Legend />
-                            <Area type="monotone" dataKey="income" name="ဝင်ငွေ" stroke="#10b981" fill="#10b981" fillOpacity={0.2} />
-                            <Area type="monotone" dataKey="expense" name="ထွက်ငွေ" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} />
-                        </AreaChart>
-                    )}
-                </ResponsiveContainer>
-             </div>
-          </div>
-        )}
-
         {/* Search & Transaction Table */}
         <div className="bg-dark-card rounded-xl shadow-sm border border-dark-border overflow-hidden">
           <div className="p-4 border-b border-dark-border bg-slate-800/50 space-y-3">
@@ -553,6 +519,54 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
           </div>
         </div>
 
+        {/* Feature 1: Charts Section (Moved to Bottom) */}
+        {transactions.length > 0 && (
+          <div className="bg-dark-card rounded-xl p-4 border border-dark-border overflow-hidden">
+             <div className="flex justify-between items-center mb-4">
+                 <h3 className="text-sm font-bold text-white">နေ့စဉ် ငွေဝင်/ထွက် နှိုင်းယှဉ်ချက်</h3>
+                 <div className="flex bg-slate-800 rounded-lg p-1 gap-1">
+                     <button onClick={() => setChartType('bar')} className={`p-1.5 rounded ${chartType === 'bar' ? 'bg-slate-600 text-white' : 'text-dark-muted hover:text-white'}`}><BarChart3 size={16}/></button>
+                     <button onClick={() => setChartType('line')} className={`p-1.5 rounded ${chartType === 'line' ? 'bg-slate-600 text-white' : 'text-dark-muted hover:text-white'}`}><LineChartIcon size={16}/></button>
+                 </div>
+             </div>
+             <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    {chartType === 'bar' ? (
+                        <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }} />
+                            <Legend />
+                            <Bar dataKey="income" name="ဝင်ငွေ" fill="#10b981" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="expense" name="ထွက်ငွေ" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    ) : chartType === 'line' ? (
+                        <LineChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }} />
+                            <Legend />
+                            <Line type="monotone" dataKey="income" name="ဝင်ငွေ" stroke="#10b981" strokeWidth={2} dot={false} />
+                            <Line type="monotone" dataKey="expense" name="ထွက်ငွေ" stroke="#ef4444" strokeWidth={2} dot={false} />
+                        </LineChart>
+                    ) : (
+                        <AreaChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9' }} />
+                            <Legend />
+                            <Area type="monotone" dataKey="income" name="ဝင်ငွေ" stroke="#10b981" fill="#10b981" fillOpacity={0.2} />
+                            <Area type="monotone" dataKey="expense" name="ထွက်ငွေ" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} />
+                        </AreaChart>
+                    )}
+                </ResponsiveContainer>
+             </div>
+          </div>
+        )}
+
         {/* Home Button */}
         {!isCurrentMonth && (
             <button onClick={() => setFilterDate(currentMonth)} className="w-full py-3 rounded-xl border border-primary text-primary hover:bg-primary/10 transition flex items-center justify-center gap-2 font-bold">
@@ -612,14 +626,20 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
               <div className="grid grid-cols-2 gap-3 p-1 bg-slate-900 rounded-xl">
                 <button
                   type="button"
-                  onClick={() => setType(TransactionType.EXPENSE)}
+                  onClick={() => {
+                    setType(TransactionType.EXPENSE);
+                    setLabel(''); // Reset label when switching type
+                  }}
                   className={`py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 ${type === TransactionType.EXPENSE ? 'bg-red-500 text-white shadow-lg' : 'text-dark-muted hover:text-white'}`}
                 >
                   <ArrowDown size={16} /> ထွက်ငွေ
                 </button>
                 <button
                   type="button"
-                  onClick={() => setType(TransactionType.INCOME)}
+                  onClick={() => {
+                    setType(TransactionType.INCOME);
+                    setLabel(''); // Reset label when switching type
+                  }}
                   className={`py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 ${type === TransactionType.INCOME ? 'bg-emerald-500 text-slate-900 shadow-lg' : 'text-dark-muted hover:text-white'}`}
                 >
                   <ArrowUp size={16} /> ဝင်ငွေ
@@ -646,12 +666,12 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   className="w-full bg-slate-700 text-white px-4 py-3 rounded-xl border-2 border-transparent focus:border-primary focus:outline-none transition placeholder-slate-500 mb-2"
-                  placeholder="ဥပမာ - မနက်စာ"
+                  placeholder={type === TransactionType.INCOME ? "ဥပမာ - လစာ" : "ဥပမာ - မနက်စာ"}
                 />
                 
-                {/* Feature 2: Category Grid */}
+                {/* Feature 2: Category Grid (Dynamic based on Type) */}
                 <div className="grid grid-cols-5 gap-2 mt-2">
-                    {CATEGORIES.map((cat, idx) => (
+                    {currentCategories.map((cat, idx) => (
                         <button
                             key={idx}
                             type="button"
