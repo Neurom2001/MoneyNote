@@ -103,7 +103,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen lg:h-screen bg-dark-bg flex flex-col lg:flex-row text-white font-sans relative lg:overflow-hidden">
+    <div className="min-h-screen lg:h-screen bg-dark-bg flex flex-col-reverse lg:flex-row text-white font-sans relative lg:overflow-hidden">
       
       {/* Toast Notification */}
       {toast && (
@@ -116,15 +116,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       )}
 
       {/* Branding & Features Section */}
-      {/* Mobile: Order 2 (Bottom), Desktop: Order 1 (Left) */}
-      <div className="lg:w-1/2 w-full p-8 flex flex-col justify-center bg-slate-900 border-t lg:border-t-0 lg:border-r border-dark-border relative overflow-hidden shrink-0 order-2 lg:order-1 h-auto lg:h-full">
+      {/* Mobile: Bottom, Desktop: Left */}
+      <div className="w-full lg:w-1/2 bg-slate-900 border-t lg:border-t-0 lg:border-r border-dark-border relative shrink-0 h-auto lg:h-full z-10">
          {/* Background decoration */}
          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20 lg:opacity-10">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse"></div>
             <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-500 rounded-full blur-3xl opacity-50"></div>
          </div>
 
-         <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl mx-auto lg:mx-0 w-full lg:pl-12">
+         <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left w-full h-full p-8 lg:p-0 lg:justify-center lg:pl-12">
             <div className="flex items-center gap-3 mb-6">
                 <div className="bg-gradient-to-br from-primary to-emerald-600 p-3 rounded-xl shadow-lg shadow-primary/20">
                     <Wallet className="text-slate-900 w-8 h-8" />
@@ -176,8 +176,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       </div>
 
       {/* Auth Form Section */}
-      {/* Mobile: Order 1 (Top), Desktop: Order 2 (Right) */}
-      <div className="lg:w-1/2 w-full p-6 lg:px-12 flex items-center justify-center bg-slate-800/30 flex-grow order-1 lg:order-2 backdrop-blur-sm relative lg:overflow-hidden lg:h-full py-10 lg:py-0">
+      {/* Mobile: Top, Desktop: Right */}
+      <div className="w-full lg:w-1/2 p-6 lg:px-12 flex items-center justify-center bg-slate-800/30 flex-grow backdrop-blur-sm relative lg:overflow-hidden h-auto lg:h-full py-10 lg:py-0 z-20">
         
         <div className="w-full max-w-md space-y-5 animate-in fade-in slide-in-from-right-8 duration-500 mt-2 lg:mt-0">
             
