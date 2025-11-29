@@ -48,25 +48,25 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
   // Helper function to generate categories based on current language
   const getExpenseCategories = () => [
-    { label: t.cat_food, icon: <Utensils size={20} /> },
-    { label: t.cat_transport, icon: <Bus size={20} /> },
-    { label: t.cat_shopping, icon: <ShoppingBag size={20} /> },
-    { label: t.cat_health, icon: <Stethoscope size={20} /> },
-    { label: t.cat_bill, icon: <Zap size={20} /> },
-    { label: t.cat_phone, icon: <Smartphone size={20} /> },
-    { label: t.cat_gift, icon: <Gift size={20} /> },
-    { label: t.cat_work, icon: <Briefcase size={20} /> },
-    { label: t.cat_education, icon: <GraduationCap size={20} /> },
-    { label: t.cat_general, icon: <CircleDollarSign size={20} /> },
+    { label: t.cat_food, icon: <Utensils size={18} /> },
+    { label: t.cat_transport, icon: <Bus size={18} /> },
+    { label: t.cat_shopping, icon: <ShoppingBag size={18} /> },
+    { label: t.cat_health, icon: <Stethoscope size={18} /> },
+    { label: t.cat_bill, icon: <Zap size={18} /> },
+    { label: t.cat_phone, icon: <Smartphone size={18} /> },
+    { label: t.cat_gift, icon: <Gift size={18} /> },
+    { label: t.cat_work, icon: <Briefcase size={18} /> },
+    { label: t.cat_education, icon: <GraduationCap size={18} /> },
+    { label: t.cat_general, icon: <CircleDollarSign size={18} /> },
   ];
 
   const getIncomeCategories = () => [
-    { label: t.cat_salary, icon: <Banknote size={20} /> },
-    { label: t.cat_bonus, icon: <TrendingUp size={20} /> },
-    { label: t.cat_sales, icon: <ShoppingBag size={20} /> },
-    { label: t.cat_pocket, icon: <Wallet size={20} /> },
-    { label: t.cat_refund, icon: <ArrowLeftRight size={20} /> },
-    { label: t.cat_general, icon: <CircleDollarSign size={20} /> },
+    { label: t.cat_salary, icon: <Banknote size={18} /> },
+    { label: t.cat_bonus, icon: <TrendingUp size={18} /> },
+    { label: t.cat_sales, icon: <ShoppingBag size={18} /> },
+    { label: t.cat_pocket, icon: <Wallet size={18} /> },
+    { label: t.cat_refund, icon: <ArrowLeftRight size={18} /> },
+    { label: t.cat_general, icon: <CircleDollarSign size={18} /> },
   ];
 
   // --- Helpers ---
@@ -583,7 +583,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg pb-24 text-dark-text font-sans relative flex flex-col text-base">
+    <div className="min-h-screen bg-dark-bg pb-24 text-dark-text font-sans relative flex flex-col">
       {/* Toast */}
       {toast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-300">
@@ -596,20 +596,20 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
       {/* Header */}
       <header className="bg-dark-card shadow-md sticky top-0 z-20 border-b border-dark-border">
-        <div className="max-w-4xl mx-auto px-4 py-5 flex justify-between items-center">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="bg-primary/20 p-2.5 rounded-xl">
-                <Wallet className="text-primary" size={28} />
+                <Wallet className="text-primary" size={24} />
             </div>
             <div>
-                <h1 className="text-2xl font-bold text-white leading-tight">{t.appName}</h1>
+                <h1 className="text-xl font-bold text-white leading-tight">{t.appName}</h1>
                 <p className="text-xs text-dark-muted">{t.appDesc}</p>
             </div>
           </div>
           <div className="flex gap-2 items-center">
             {deferredPrompt && (
-                <button onClick={handleInstallClick} className="bg-primary/10 hover:bg-primary/20 text-primary transition text-xs sm:text-sm border border-primary/20 px-4 py-2.5 rounded-xl flex items-center gap-1 font-bold animate-pulse">
-                    <Smartphone size={18} /> <span className="hidden sm:inline">Install App</span>
+                <button onClick={handleInstallClick} className="bg-primary/10 hover:bg-primary/20 text-primary transition text-xs sm:text-sm border border-primary/20 px-4 py-2 rounded-xl flex items-center gap-1 font-bold animate-pulse">
+                    <Smartphone size={16} /> <span className="hidden sm:inline">Install App</span>
                 </button>
             )}
             
@@ -617,9 +617,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
             <div className="relative">
                 <button 
                   onClick={() => setShowSettingsMenu(!showSettingsMenu)} 
-                  className="bg-slate-700/50 hover:bg-slate-700 text-white p-3 rounded-xl border border-dark-border transition flex items-center justify-center"
+                  className="bg-slate-700/50 hover:bg-slate-700 text-white p-2.5 rounded-xl border border-dark-border transition flex items-center justify-center"
                 >
-                    <Settings size={22} />
+                    <Settings size={20} />
                 </button>
 
                 {showSettingsMenu && (
@@ -665,28 +665,28 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         
         {/* User Welcome */}
         <div className="flex items-center justify-between text-sm text-dark-muted px-1">
-            <span>{t.welcome}, <b className="text-white text-base">{currentUser}</b></span>
+            <span>{t.welcome}, <b className="text-white">{currentUser}</b></span>
             <span>{getLocalDate()}</span>
         </div>
 
         {/* Monthly Stats Summary */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4">
              <div className="bg-dark-card p-4 rounded-xl border border-dark-border flex flex-col items-center justify-center shadow-sm">
-                 <span className="text-sm text-dark-muted mb-1">{t.income}</span>
+                 <span className="text-xs sm:text-sm text-dark-muted mb-1">{t.income}</span>
                  <span className="text-emerald-400 font-bold text-base sm:text-xl">
-                    +{monthlyStats.income.toLocaleString()} <span className="text-sm font-medium text-emerald-400/80">{currency}</span>
+                    +{monthlyStats.income.toLocaleString()} <span className="text-xs font-medium text-emerald-400/80">{currency}</span>
                  </span>
              </div>
              <div className="bg-dark-card p-4 rounded-xl border border-dark-border flex flex-col items-center justify-center shadow-sm">
-                 <span className="text-sm text-dark-muted mb-1">{t.expense}</span>
+                 <span className="text-xs sm:text-sm text-dark-muted mb-1">{t.expense}</span>
                  <span className="text-red-400 font-bold text-base sm:text-xl">
-                    -{monthlyStats.expense.toLocaleString()} <span className="text-sm font-medium text-red-400/80">{currency}</span>
+                    -{monthlyStats.expense.toLocaleString()} <span className="text-xs font-medium text-red-400/80">{currency}</span>
                  </span>
              </div>
              <div className="bg-dark-card p-4 rounded-xl border border-dark-border flex flex-col items-center justify-center shadow-sm">
-                 <span className="text-sm text-dark-muted mb-1">{t.balance}</span>
+                 <span className="text-xs sm:text-sm text-dark-muted mb-1">{t.balance}</span>
                  <span className={`font-bold text-base sm:text-xl ${monthlyStats.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {monthlyStats.net > 0 ? '+' : ''}{monthlyStats.net.toLocaleString()} <span className="text-sm font-medium opacity-80">{currency}</span>
+                    {monthlyStats.net > 0 ? '+' : ''}{monthlyStats.net.toLocaleString()} <span className="text-xs font-medium opacity-80">{currency}</span>
                  </span>
              </div>
         </div>
@@ -704,7 +704,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                     onClick={openBudgetModal}
                     className="text-dark-muted hover:text-white transition p-2 hover:bg-slate-700 rounded-lg"
                   >
-                      <SlidersHorizontal size={20} />
+                      <SlidersHorizontal size={18} />
                   </button>
                 )}
             </div>
@@ -715,8 +715,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                         onClick={openBudgetModal}
                         className="bg-slate-700/50 hover:bg-slate-700 border border-dashed border-slate-500 text-emerald-400 font-bold py-4 px-6 rounded-xl transition w-full flex flex-col items-center justify-center gap-2 group-hover:border-emerald-500/50"
                     >
-                        <Target size={28} className="mb-1 text-emerald-500" />
-                        <span className="text-lg">🎯 {t.setBudget}</span>
+                        <Target size={24} className="mb-1 text-emerald-500" />
+                        <span className="text-base sm:text-lg">🎯 {t.setBudget}</span>
                         <span className="text-xs text-dark-muted font-normal">{t.setBudgetDesc}</span>
                     </button>
                 </div>
@@ -767,10 +767,10 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         <div className="bg-dark-card rounded-xl shadow-sm border border-dark-border overflow-hidden">
           <div className="p-4 border-b border-dark-border bg-slate-800/50 space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-gray-200 text-lg">
+              <h3 className="font-bold text-gray-200 text-base sm:text-lg">
                 {getBurmeseMonthName(filterDate)}
               </h3>
-              <span className="text-sm text-dark-muted bg-slate-700 px-3 py-1 rounded border border-dark-border">{filteredAndSortedTransactions.length} {t.items}</span>
+              <span className="text-xs sm:text-sm text-dark-muted bg-slate-700 px-3 py-1 rounded border border-dark-border">{filteredAndSortedTransactions.length} {t.items}</span>
             </div>
             
             {/* Search Input & Category Filters */}
@@ -821,16 +821,16 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-base text-dark-text">
+            <table className="w-full text-left text-sm text-dark-text">
               <thead className="bg-slate-800 text-dark-muted font-medium border-b border-dark-border">
                 <tr>
-                  <th onClick={() => handleSort('date')} className="px-4 py-4 cursor-pointer hover:bg-slate-700/50 transition w-1/4">
+                  <th onClick={() => handleSort('date')} className="px-4 py-3 cursor-pointer hover:bg-slate-700/50 transition w-1/4">
                     <div className="flex items-center">{t.date} {getSortIcon('date')}</div>
                   </th>
-                  <th onClick={() => handleSort('label')} className="px-4 py-4 cursor-pointer hover:bg-slate-700/50 transition w-2/4">
+                  <th onClick={() => handleSort('label')} className="px-4 py-3 cursor-pointer hover:bg-slate-700/50 transition w-2/4">
                     <div className="flex items-center">{t.label} {getSortIcon('label')}</div>
                   </th>
-                  <th onClick={() => handleSort('amount')} className="px-4 py-4 text-right cursor-pointer hover:bg-slate-700/50 transition w-1/4">
+                  <th onClick={() => handleSort('amount')} className="px-4 py-3 text-right cursor-pointer hover:bg-slate-700/50 transition w-1/4">
                      <div className="flex items-center justify-end">{t.amount} {getSortIcon('amount')}</div>
                   </th>
                 </tr>
@@ -838,16 +838,16 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
               <tbody className="divide-y divide-dark-border">
                 {filteredAndSortedTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-dark-muted italic text-base">
+                    <td colSpan={3} className="px-4 py-8 text-center text-dark-muted italic">
                       {t.noData}
                     </td>
                   </tr>
                 ) : (
                   filteredAndSortedTransactions.map((t) => (
                     <tr key={t.id} onClick={() => handleRowClick(t)} className="hover:bg-slate-800/50 transition cursor-pointer active:bg-slate-800 group">
-                      <td className="px-4 py-4 whitespace-nowrap text-dark-muted text-sm sm:text-base">{formatDateDisplay(t.date)}</td>
-                      <td className="px-4 py-4 font-medium text-white">{t.label}</td>
-                      <td className={`px-4 py-4 text-right font-bold ${t.type === TransactionType.INCOME ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <td className="px-4 py-3 whitespace-nowrap text-dark-muted text-xs sm:text-sm">{formatDateDisplay(t.date)}</td>
+                      <td className="px-4 py-3 font-medium text-white">{t.label}</td>
+                      <td className={`px-4 py-3 text-right font-bold ${t.type === TransactionType.INCOME ? 'text-emerald-400' : 'text-red-400'}`}>
                         {t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toLocaleString()} <span className="text-xs font-medium opacity-70 ml-0.5">{currency}</span>
                       </td>
                     </tr>
@@ -873,9 +873,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                     {chartType === 'bar' ? (
                         <BarChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={14} tickLine={false} />
-                            <YAxis stroke="#94a3b8" fontSize={14} tickLine={false} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9', fontSize: '14px' }} />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9', fontSize: '12px' }} />
                             <Legend />
                             <Bar dataKey="income" name={t.income} fill="#10b981" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="expense" name={t.expense} fill="#ef4444" radius={[4, 4, 0, 0]} />
@@ -883,9 +883,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                     ) : chartType === 'line' ? (
                         <LineChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={14} tickLine={false} />
-                            <YAxis stroke="#94a3b8" fontSize={14} tickLine={false} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9', fontSize: '14px' }} />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9', fontSize: '12px' }} />
                             <Legend />
                             <Line type="monotone" dataKey="income" name={t.income} stroke="#10b981" strokeWidth={3} dot={false} />
                             <Line type="monotone" dataKey="expense" name={t.expense} stroke="#ef4444" strokeWidth={3} dot={false} />
@@ -893,9 +893,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                     ) : (
                         <AreaChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={14} tickLine={false} />
-                            <YAxis stroke="#94a3b8" fontSize={14} tickLine={false} />
-                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9', fontSize: '14px' }} />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f1f5f9', fontSize: '12px' }} />
                             <Legend />
                             <Area type="monotone" dataKey="income" name={t.income} stroke="#10b981" fill="#10b981" fillOpacity={0.2} />
                             <Area type="monotone" dataKey="expense" name={t.expense} stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} />
@@ -908,16 +908,16 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
         {/* Home Button */}
         {!isCurrentMonth && (
-            <button onClick={() => setFilterDate(currentMonth)} className="w-full py-4 rounded-xl border border-primary text-primary hover:bg-primary/10 transition flex items-center justify-center gap-2 font-bold text-lg">
-                <Home size={24} /> {t.backToCurrent}
+            <button onClick={() => setFilterDate(currentMonth)} className="w-full py-4 rounded-xl border border-primary text-primary hover:bg-primary/10 transition flex items-center justify-center gap-2 font-bold text-base sm:text-lg">
+                <Home size={22} /> {t.backToCurrent}
             </button>
         )}
 
         {/* History List */}
         <div className="space-y-4 pt-4 border-t border-dark-border">
-          <h3 className="text-dark-muted text-base font-bold uppercase tracking-wider">{t.historyTitle}</h3>
+          <h3 className="text-dark-muted text-sm font-bold uppercase tracking-wider">{t.historyTitle}</h3>
           {historySummaries.length === 0 ? (
-             <p className="text-dark-muted text-base">{t.noHistory}</p>
+             <p className="text-dark-muted text-sm">{t.noHistory}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {historySummaries.map(([monthKey, stats]) => (
@@ -930,7 +930,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                   className="bg-dark-card p-4 rounded-xl border border-dark-border hover:border-primary/50 transition text-left group"
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-white group-hover:text-primary transition text-base">{getBurmeseMonthName(monthKey)}</span>
+                    <span className="font-bold text-white group-hover:text-primary transition text-sm sm:text-base">{getBurmeseMonthName(monthKey)}</span>
                     <span className={`text-sm font-bold ${stats.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {stats.net > 0 ? '+' : ''}{stats.net.toLocaleString()} <span className="text-xs ml-1 opacity-80">{currency}</span>
                     </span>
@@ -976,7 +976,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         <div className="fixed inset-0 bg-black/80 z-40 flex items-start sm:items-center justify-center p-4 pt-2 sm:pt-4">
           <div className="bg-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-700 max-h-[85vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">
                 {editingId ? t.editTransaction : t.addTransaction}
               </h2>
               <button onClick={resetForm} className="text-dark-muted hover:text-white transition"><X size={28} /></button>
@@ -990,7 +990,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                     setType(TransactionType.EXPENSE);
                     setLabel(''); // Reset label when switching type
                   }}
-                  className={`py-3 rounded-lg text-base font-bold transition flex items-center justify-center gap-2 ${type === TransactionType.EXPENSE ? 'bg-red-500 text-white shadow-lg' : 'text-dark-muted hover:text-white'}`}
+                  className={`py-3 rounded-lg text-sm sm:text-base font-bold transition flex items-center justify-center gap-2 ${type === TransactionType.EXPENSE ? 'bg-red-500 text-white shadow-lg' : 'text-dark-muted hover:text-white'}`}
                 >
                   <ArrowDown size={18} /> {t.expense}
                 </button>
@@ -1000,32 +1000,32 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                     setType(TransactionType.INCOME);
                     setLabel(''); // Reset label when switching type
                   }}
-                  className={`py-3 rounded-lg text-base font-bold transition flex items-center justify-center gap-2 ${type === TransactionType.INCOME ? 'bg-emerald-500 text-slate-900 shadow-lg' : 'text-dark-muted hover:text-white'}`}
+                  className={`py-3 rounded-lg text-sm sm:text-base font-bold transition flex items-center justify-center gap-2 ${type === TransactionType.INCOME ? 'bg-emerald-500 text-slate-900 shadow-lg' : 'text-dark-muted hover:text-white'}`}
                 >
                   <ArrowUp size={18} /> {t.income}
                 </button>
               </div>
 
               <div>
-                <label className="block text-dark-muted text-sm font-bold mb-2 uppercase tracking-wider">{t.amount} ({currency})</label>
+                <label className="block text-dark-muted text-xs sm:text-sm font-bold mb-2 uppercase tracking-wider">{t.amount} ({currency})</label>
                 <input
                   type="number"
                   inputMode="numeric"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full bg-slate-700 text-white text-3xl font-bold px-4 py-4 rounded-xl border-2 border-transparent focus:border-primary focus:outline-none transition placeholder-slate-500"
+                  className="w-full bg-slate-700 text-white text-2xl sm:text-3xl font-bold px-4 py-4 rounded-xl border-2 border-transparent focus:border-primary focus:outline-none transition placeholder-slate-500"
                   placeholder="0"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-dark-muted text-sm font-bold mb-2 uppercase tracking-wider">{t.label}</label>
+                <label className="block text-dark-muted text-xs sm:text-sm font-bold mb-2 uppercase tracking-wider">{t.label}</label>
                 <input
                   type="text"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
-                  className="w-full bg-slate-700 text-white text-lg px-4 py-3.5 rounded-xl border-2 border-transparent focus:border-primary focus:outline-none transition placeholder-slate-500 mb-3"
+                  className="w-full bg-slate-700 text-white text-base px-4 py-3.5 rounded-xl border-2 border-transparent focus:border-primary focus:outline-none transition placeholder-slate-500 mb-3"
                   placeholder={type === TransactionType.INCOME ? t.labelPlaceholderIncome : t.labelPlaceholderExpense}
                 />
                 
@@ -1065,13 +1065,13 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
             <div className="flex justify-between items-start">
               <div>
                  <h3 className="text-xl font-bold text-white break-words">{selectedTransaction.label}</h3>
-                 <p className="text-dark-muted text-base">{formatDateDisplay(selectedTransaction.date)}</p>
+                 <p className="text-dark-muted text-sm">{formatDateDisplay(selectedTransaction.date)}</p>
               </div>
               <button onClick={() => setSelectedTransaction(null)} className="text-dark-muted hover:text-white bg-slate-700 p-1.5 rounded-full"><X size={22} /></button>
             </div>
-            <div className="text-4xl font-bold text-center py-4 bg-slate-900/50 rounded-xl">
+            <div className="text-3xl sm:text-4xl font-bold text-center py-4 bg-slate-900/50 rounded-xl">
               <span className={selectedTransaction.type === TransactionType.INCOME ? 'text-emerald-400' : 'text-red-400'}>
-                {selectedTransaction.type === TransactionType.INCOME ? '+' : '-'}{selectedTransaction.amount.toLocaleString()} <span className="text-lg text-dark-muted font-normal">{currency}</span>
+                {selectedTransaction.type === TransactionType.INCOME ? '+' : '-'}{selectedTransaction.amount.toLocaleString()} <span className="text-base sm:text-lg text-dark-muted font-normal">{currency}</span>
               </span>
             </div>
             
@@ -1084,18 +1084,18 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                              <p className="font-bold text-base">{t.confirmDelete}</p>
                          </div>
                          <div className="flex gap-4">
-                             <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3 rounded-lg bg-slate-700 text-white hover:bg-slate-600 font-bold text-base transition">{t.cancel}</button>
-                             <button onClick={confirmDelete} className="flex-1 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 font-bold text-base transition shadow-lg shadow-red-900/20">{t.delete}</button>
+                             <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3 rounded-lg bg-slate-700 text-white hover:bg-slate-600 font-bold text-sm sm:text-base transition">{t.cancel}</button>
+                             <button onClick={confirmDelete} className="flex-1 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 font-bold text-sm sm:text-base transition shadow-lg shadow-red-900/20">{t.delete}</button>
                          </div>
                      </div>
                 ) : (
                     <div className="grid grid-cols-2 gap-4">
                       <button onClick={handleEditClick} className="flex flex-col items-center justify-center gap-3 bg-slate-700 hover:bg-blue-600/20 hover:border-blue-500/50 border border-transparent p-5 rounded-xl transition group">
-                        <div className="bg-blue-500/10 p-3 rounded-full group-hover:bg-blue-500 text-blue-400 group-hover:text-white transition"><Edit size={28} /></div>
+                        <div className="bg-blue-500/10 p-3 rounded-full group-hover:bg-blue-500 text-blue-400 group-hover:text-white transition"><Edit size={24} /></div>
                         <span className="text-base font-bold text-blue-100 group-hover:text-blue-400">{t.edit}</span>
                       </button>
                       <button onClick={handleRequestDelete} className="flex flex-col items-center justify-center gap-3 bg-slate-700 hover:bg-red-600/20 hover:border-red-500/50 border border-transparent p-5 rounded-xl transition group">
-                         <div className="bg-red-500/10 p-3 rounded-full group-hover:bg-red-500 text-red-400 group-hover:text-white transition"><Trash2 size={28} /></div>
+                         <div className="bg-red-500/10 p-3 rounded-full group-hover:bg-red-500 text-red-400 group-hover:text-white transition"><Trash2 size={24} /></div>
                         <span className="text-base font-bold text-red-100 group-hover:text-red-400">{t.delete}</span>
                       </button>
                     </div>

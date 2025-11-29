@@ -24,10 +24,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const t = TRANSLATIONS[language];
 
   const features = [
-    { icon: <TrendingUp size={24} />, text: t.feat1 },
-    { icon: <PieChart size={24} />, text: t.feat2 },
-    { icon: <Wallet size={24} />, text: t.feat3 },
-    { icon: <ShieldCheck size={24} />, text: t.feat4 },
+    { icon: <TrendingUp size={20} />, text: t.feat1 },
+    { icon: <PieChart size={20} />, text: t.feat2 },
+    { icon: <Wallet size={20} />, text: t.feat3 },
+    { icon: <ShieldCheck size={20} />, text: t.feat4 },
   ];
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
@@ -142,7 +142,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 </div>
             </div>
 
-            <p className="text-slate-300 text-lg lg:text-xl mb-10 leading-relaxed max-w-md lg:max-w-none hidden lg:block">
+            <p className="text-slate-300 text-base lg:text-lg mb-10 leading-relaxed max-w-md lg:max-w-none hidden lg:block">
                 {language === 'my' ? (
                   <>သင့်ငွေကြေးစီမံခန့်ခွဲမှုအတွက် အကောင်းဆုံးလက်ထောက်။ <br/>မြန်မာဘာသာဖြင့် အသုံးပြုရလွယ်ကူပြီး တိကျသေချာသော စာရင်းအင်းစနစ်။</>
                 ) : language === 'ja' ? (
@@ -154,7 +154,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
             <div className="space-y-6 mb-10 w-full max-w-sm lg:max-w-none">
                 {features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-5 text-slate-300 text-base lg:text-lg p-4 bg-slate-800/40 rounded-xl border border-slate-700/50 hover:bg-slate-800/80 transition group">
+                    <div key={idx} className="flex items-center gap-5 text-slate-300 text-sm lg:text-base p-4 bg-slate-800/40 rounded-xl border border-slate-700/50 hover:bg-slate-800/80 transition group">
                         <div className="text-primary bg-primary/10 p-2.5 rounded-lg group-hover:bg-primary group-hover:text-slate-900 transition duration-300 shrink-0">{feature.icon}</div>
                         <span className="font-medium">{feature.text}</span>
                     </div>
@@ -217,7 +217,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <h2 className="text-3xl lg:text-4xl font-bold text-white mb-2">
                     {isLoginView ? t.loginTitle : t.registerTitle}
                 </h2>
-                <p className="text-slate-400 text-base lg:text-lg">
+                <p className="text-slate-400 text-sm lg:text-base">
                     {isLoginView ? t.loginSubtitle : t.registerSubtitle}
                 </p>
             </div>
@@ -225,13 +225,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             {/* Critical Warning Box */}
             <div className="bg-amber-900/20 border border-amber-600/30 rounded-xl p-5 flex gap-3 items-start text-left shadow-sm">
                 <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={24} />
-                <div className="text-sm lg:text-base text-amber-200/80 leading-relaxed">
+                <div className="text-sm text-amber-200/80 leading-relaxed">
                     <strong>{t.warningTitle}</strong> {t.warningText}
                 </div>
             </div>
 
             {error && (
-                <div className="bg-red-500/10 border border-red-500/50 text-red-200 px-5 py-4 rounded-xl text-base flex items-center gap-3 animate-in shake">
+                <div className="bg-red-500/10 border border-red-500/50 text-red-200 px-5 py-4 rounded-xl text-sm flex items-center gap-3 animate-in shake">
                     <AlertTriangle size={20} /> {error}
                 </div>
             )}
@@ -249,7 +249,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-700 text-white text-lg rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-900 border border-slate-700 text-white text-base rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
                             placeholder={t.usernamePlaceholder}
                             disabled={isLoading}
                             autoComplete="username"
@@ -269,7 +269,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                             type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-12 pr-12 py-4 bg-slate-900 border border-slate-700 text-white text-lg rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
+                            className="w-full pl-12 pr-12 py-3 bg-slate-900 border border-slate-700 text-white text-base rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition placeholder-slate-600 shadow-sm"
                             placeholder={t.passwordPlaceholder}
                             disabled={isLoading}
                             autoComplete={isLoginView ? "current-password" : "new-password"}
@@ -287,21 +287,21 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full bg-gradient-to-r from-emerald-600 to-primary hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 group text-lg ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full bg-gradient-to-r from-emerald-600 to-primary hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition duration-300 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 group text-base ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isLoading ? (
                         <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     ) : (
                         <>
                             {isLoginView ? t.loginBtn : t.registerBtn}
-                            <ArrowRight size={24} className="group-hover:translate-x-1 transition" />
+                            <ArrowRight size={20} className="group-hover:translate-x-1 transition" />
                         </>
                     )}
                 </button>
             </form>
 
             <div className="text-center pt-8 border-t border-slate-700/50">
-                <p className="text-slate-400 text-base mb-3">
+                <p className="text-slate-400 text-sm mb-3">
                     {isLoginView ? t.noAccount : t.hasAccount}
                 </p>
                 <button
@@ -311,7 +311,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                         setToast(null);
                     }}
                     disabled={isLoading}
-                    className="text-primary hover:text-emerald-300 font-bold transition flex items-center justify-center gap-1 mx-auto hover:underline decoration-2 underline-offset-4 text-lg"
+                    className="text-primary hover:text-emerald-300 font-bold transition flex items-center justify-center gap-1 mx-auto hover:underline decoration-2 underline-offset-4 text-base"
                 >
                     {isLoginView 
                     ? t.createAccount 
