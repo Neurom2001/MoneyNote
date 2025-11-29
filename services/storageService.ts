@@ -28,6 +28,13 @@ export const registerUser = async (username: string, password: string): Promise<
   if (error) {
     return { success: false, error: error.message };
   }
+
+  // CRITICAL: Supabase might auto-login after signup depending on project settings.
+  // We strictly want the user to login manually. So we force a sign out here.
+  if (data.session) {
+    await supabase.auth.signOut();
+  }
+
   return { success: true };
 };
 

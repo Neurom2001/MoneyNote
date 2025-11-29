@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { loginUser, registerUser } from '../services/storageService';
-import { Wallet, CheckCircle2, AlertTriangle, Eye, EyeOff, ShieldCheck, PieChart, TrendingUp, Heart, Copyright, Mail, Send } from 'lucide-react';
+import { Wallet, AlertTriangle, Eye, EyeOff, ShieldCheck, PieChart, TrendingUp, Heart, Copyright, Mail, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface AuthProps {
   onLogin: (username: string) => void;
@@ -12,8 +12,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Toast State
+  const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
 
   const features = [
     { icon: <TrendingUp size={20} />, text: "ဝင်ငွေ/ထွက်ငွေ စာရင်းများကို လွယ်ကူစွာ မှတ်သားနိုင်ခြင်း" },
@@ -22,10 +24,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     { icon: <ShieldCheck size={20} />, text: "လုံခြုံစိတ်ချရသော ကိုယ်ပိုင်အကောင့်စနစ်" },
   ];
 
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setIsLoading(true);
 
     if (!username || !password) {
@@ -44,30 +50,46 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       if (isLoginView) {
         const result = await loginUser(username, password);
         if (result.success) {
-          onLogin(username);
+          showToast('ဝင်ရောက်ခြင်း အောင်မြင်ပါသည်', 'success');
+          // Delay briefly so user sees the toast before switching views
+          setTimeout(() => {
+            onLogin(username);
+          }, 1000);
         } else {
           setError('အကောင့်ဝင်မရပါ (သို့) စကားဝှက်မှားယွင်းနေပါသည်။');
+          setIsLoading(false);
         }
       } else {
         const result = await registerUser(username, password);
         if (result.success) {
-          setSuccess('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ ကျေးဇူးပြု၍ ဝင်ရောက်ပါ။');
+          showToast('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ ကျေးဇူးပြု၍ ဝင်ရောက်ပါ။', 'success');
           setIsLoginView(true);
           setPassword('');
+          setIsLoading(false);
         } else {
           setError(result.error || 'အကောင့်ဖွင့်မရပါ။ ထပ်မံကြိုးစားကြည့်ပါ။');
+          setIsLoading(false);
         }
       }
     } catch (err) {
       setError('System Error: ' + err);
-    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg flex flex-col lg:flex-row text-white font-sans">
+    <div className="min-h-screen bg-dark-bg flex flex-col lg:flex-row text-white font-sans relative">
       
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-300">
+          <div className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'success' ? 'bg-emerald-900/90 border-emerald-500 text-emerald-100' : 'bg-red-900/90 border-red-500 text-red-100'}`}>
+            {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+            <span className="text-sm font-medium">{toast.msg}</span>
+          </div>
+        </div>
+      )}
+
       {/* Branding & Features Section */}
       {/* Mobile: Order 2 (Bottom), Desktop: Order 1 (Left) */}
       <div className="lg:w-1/2 p-6 lg:p-12 flex flex-col justify-center bg-slate-900 border-t lg:border-t-0 lg:border-r border-dark-border relative overflow-hidden shrink-0 order-2 lg:order-1">
@@ -163,11 +185,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 </div>
             )}
             
-            {success && (
-                <div className="bg-emerald-900/30 border border-emerald-800 text-emerald-200 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
-                    <CheckCircle2 size={16} /> {success}
-                </div>
-            )}
+            {/* Removed the static success alert box in favor of Toast */}
 
             <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5">
                 <div>
@@ -226,7 +244,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     onClick={() => {
                         setIsLoginView(!isLoginView);
                         setError('');
-                        setSuccess('');
+                        // Clear toast when switching views
+                        setToast(null);
                     }}
                     disabled={isLoading}
                     className="text-primary hover:text-emerald-300 font-bold transition"

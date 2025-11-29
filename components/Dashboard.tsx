@@ -282,8 +282,13 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   };
 
   const handleLogout = async () => {
-    await logoutUser();
-    onLogout();
+    setShowLogoutConfirm(false);
+    showToast('အကောင့်မှ ထွက်လိုက်ပါပြီ', 'success');
+    // Delay slightly to show the toast
+    setTimeout(async () => {
+        await logoutUser();
+        onLogout();
+    }, 1000);
   };
 
   const handleExportCSV = () => {
