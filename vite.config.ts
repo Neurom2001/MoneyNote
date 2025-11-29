@@ -8,9 +8,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    define: {
-      // Polyfill process.env.API_KEY for the @google/genai SDK
-      'process.env.API_KEY': JSON.stringify(env.VITE_GOOGLE_API_KEY),
-    },
+    // Removed process.env.API_KEY define as Gemini is no longer used
   };
 });
