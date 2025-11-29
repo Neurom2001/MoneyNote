@@ -467,18 +467,18 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
           </div>
           <div className="flex gap-2">
             {deferredPrompt && (
-                <button onClick={handleInstallClick} className="bg-primary/10 hover:bg-primary/20 text-primary transition text-xs border border-primary/20 px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold animate-pulse">
-                    <Smartphone size={14} /> <span className="hidden sm:inline">Install App</span>
+                <button onClick={handleInstallClick} className="bg-primary/10 hover:bg-primary/20 text-primary transition text-xs sm:text-sm border border-primary/20 px-3 py-2 rounded-lg flex items-center gap-1 font-bold animate-pulse">
+                    <Smartphone size={16} /> <span className="hidden sm:inline">Install App</span>
                 </button>
             )}
-            <button onClick={() => setShowSupportModal(true)} className="text-dark-muted hover:text-blue-400 transition text-xs border border-dark-border px-2 py-1.5 rounded flex items-center gap-1">
-                <HelpCircle size={14} /> <span className="hidden sm:inline">Feedback</span>
+            <button onClick={() => setShowSupportModal(true)} className="text-dark-muted hover:text-blue-400 transition text-xs sm:text-sm border border-dark-border px-3 py-2 rounded flex items-center gap-1">
+                <HelpCircle size={16} /> <span className="hidden sm:inline">Feedback</span>
             </button>
-            <button onClick={() => setShowExportConfirm(true)} className="text-dark-muted hover:text-emerald-400 transition text-xs border border-dark-border px-2 py-1.5 rounded flex items-center gap-1">
-                <Download size={14} /> <span className="hidden sm:inline">Export</span>
+            <button onClick={() => setShowExportConfirm(true)} className="text-dark-muted hover:text-emerald-400 transition text-xs sm:text-sm border border-dark-border px-3 py-2 rounded flex items-center gap-1">
+                <Download size={16} /> <span className="hidden sm:inline">Export</span>
             </button>
-            <button onClick={() => setShowLogoutConfirm(true)} className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition text-xs border border-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold">
-                <LogOut size={14} /> <span className="hidden sm:inline">Logout</span>
+            <button onClick={() => setShowLogoutConfirm(true)} className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition text-xs sm:text-sm border border-red-500/20 px-3 py-2 rounded-lg flex items-center gap-1 font-bold">
+                <LogOut size={16} /> <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
@@ -784,7 +784,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
       {/* Input Form Modal (Center on desktop, Top on mobile) */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/80 z-40 flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4">
+        <div className="fixed inset-0 bg-black/80 z-40 flex items-start sm:items-center justify-center p-4 pt-2 sm:pt-4">
           <div className="bg-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-700 max-h-[85vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">
