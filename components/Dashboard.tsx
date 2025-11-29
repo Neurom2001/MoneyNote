@@ -9,7 +9,7 @@ import {
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
   Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
-  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, HelpCircle, Mail, Send, Settings, Target, AlertTriangle, Globe, SlidersHorizontal, Check, Languages
+  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, HelpCircle, Mail, Send, Settings, Target, AlertTriangle, Globe, SlidersHorizontal, Check, Languages, Coins
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -110,6 +110,10 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   // Settings & Currency
   const [currency, setCurrency] = useState(localStorage.getItem('currency') || 'ကျပ်');
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  
+  // New Modals for Settings
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   // Selection & Editing
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -185,6 +189,25 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleCurrencyChange = (newCurrency: string) => {
+    setCurrency(newCurrency);
+    setShowCurrencyModal(false);
+    showToast(language === 'my' 
+      ? `ငွေကြေးယူနစ်ကို ${newCurrency} သို့ ပြောင်းလဲလိုက်ပါပြီ` 
+      : `Currency changed to ${newCurrency}`, 
+    'success');
+  };
+
+  const handleLanguageChange = (newLang: Language) => {
+    setLanguage(newLang);
+    setShowLanguageModal(false);
+    const langLabel = LANGUAGES.find(l => l.code === newLang)?.label;
+    showToast(newLang === 'my' 
+      ? 'ဘာသာစကား ပြောင်းလဲလိုက်ပါပြီ' 
+      : `Language changed to ${langLabel}`, 
+    'success');
   };
 
   const loadData = async () => {
@@ -593,52 +616,29 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                     <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowSettingsMenu(false)}></div>
                     <div className="absolute right-0 top-full mt-2 w-64 bg-slate-800 rounded-2xl shadow-2xl border border-dark-border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                        {/* Currency Section */}
-                        <div className="p-4 border-b border-dark-border bg-slate-800/80">
-                            <div className="flex items-center gap-2 text-dark-muted mb-3 font-bold text-xs uppercase tracking-wider">
-                                <Globe size={14} /> {t.changeCurrency}
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                                {CURRENCIES.map(c => (
-                                    <button 
-                                      key={c.id} 
-                                      onClick={() => { setCurrency(c.symbol); setShowSettingsMenu(false); }}
-                                      className={`text-xs font-bold py-2 px-3 rounded-lg border transition flex items-center justify-between ${currency === c.symbol ? 'bg-primary text-slate-900 border-primary shadow-lg shadow-emerald-500/20' : 'bg-slate-700/50 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}`}
-                                    >
-                                       <span>{c.label}</span>
-                                       {currency === c.symbol && <Check size={12} strokeWidth={3} />}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Language Section */}
-                        <div className="p-4 border-b border-dark-border bg-slate-800/80">
-                            <div className="flex items-center gap-2 text-dark-muted mb-3 font-bold text-xs uppercase tracking-wider">
-                                <Languages size={14} /> {t.changeLanguage}
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                {LANGUAGES.map(l => (
-                                    <button 
-                                      key={l.code} 
-                                      onClick={() => { setLanguage(l.code as Language); setShowSettingsMenu(false); }}
-                                      className={`text-xs font-bold py-2 px-2 rounded-lg border transition flex items-center justify-center ${language === l.code ? 'bg-primary text-slate-900 border-primary shadow-lg shadow-emerald-500/20' : 'bg-slate-700/50 text-slate-300 border-slate-600 hover:bg-slate-700 hover:text-white'}`}
-                                    >
-                                       <span>{l.label}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Actions Section */}
+                        
                         <div className="p-2 space-y-1 bg-slate-800">
+                            {/* New: Currency Button */}
+                            <button onClick={() => {setShowCurrencyModal(true); setShowSettingsMenu(false);}} className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition flex items-center gap-3">
+                                <Coins size={18} className="text-amber-400" /> {t.changeCurrency}
+                            </button>
+
+                            {/* New: Language Button */}
+                            <button onClick={() => {setShowLanguageModal(true); setShowSettingsMenu(false);}} className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition flex items-center gap-3">
+                                <Languages size={18} className="text-purple-400" /> {t.changeLanguage}
+                            </button>
+                            
+                            <div className="h-px bg-dark-border mx-2 my-1"></div>
+
                             <button onClick={() => {setShowSupportModal(true); setShowSettingsMenu(false);}} className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition flex items-center gap-3">
                                 <HelpCircle size={18} className="text-blue-400" /> {t.feedback}
                             </button>
                             <button onClick={() => {setShowExportConfirm(true); setShowSettingsMenu(false);}} className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition flex items-center gap-3">
                                 <Download size={18} className="text-emerald-400" /> {t.export}
                             </button>
+                            
                             <div className="h-px bg-dark-border mx-2 my-1"></div>
+                            
                             <button onClick={() => {setShowLogoutConfirm(true); setShowSettingsMenu(false);}} className="w-full text-left px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition flex items-center gap-3 font-bold">
                                 <LogOut size={18} /> {t.logout}
                             </button>
@@ -1092,6 +1092,62 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                 </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Currency Selection Modal */}
+      {showCurrencyModal && (
+        <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+           <div className="bg-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200">
+               <div className="flex items-center gap-3">
+                   <div className="bg-amber-400/10 p-3 rounded-full">
+                       <Coins className="text-amber-400" size={24} />
+                   </div>
+                   <h3 className="text-lg font-bold text-white">{t.changeCurrency}</h3>
+                   <button onClick={() => setShowCurrencyModal(false)} className="ml-auto text-dark-muted hover:text-white"><X size={20}/></button>
+               </div>
+               
+               <div className="grid grid-cols-1 gap-2 pt-2">
+                    {CURRENCIES.map(c => (
+                        <button 
+                            key={c.id} 
+                            onClick={() => handleCurrencyChange(c.symbol)}
+                            className={`px-4 py-3 rounded-xl border transition flex items-center justify-between group ${currency === c.symbol ? 'bg-primary/20 border-primary text-primary' : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+                        >
+                            <span className="font-bold">{c.label} ({c.symbol})</span>
+                            {currency === c.symbol && <CheckCircle2 size={18} />}
+                        </button>
+                    ))}
+               </div>
+           </div>
+        </div>
+      )}
+
+      {/* Language Selection Modal */}
+      {showLanguageModal && (
+        <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+           <div className="bg-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200">
+               <div className="flex items-center gap-3">
+                   <div className="bg-purple-400/10 p-3 rounded-full">
+                       <Languages className="text-purple-400" size={24} />
+                   </div>
+                   <h3 className="text-lg font-bold text-white">{t.changeLanguage}</h3>
+                   <button onClick={() => setShowLanguageModal(false)} className="ml-auto text-dark-muted hover:text-white"><X size={20}/></button>
+               </div>
+               
+               <div className="grid grid-cols-1 gap-2 pt-2">
+                    {LANGUAGES.map(l => (
+                        <button 
+                            key={l.code} 
+                            onClick={() => handleLanguageChange(l.code as Language)}
+                            className={`px-4 py-3 rounded-xl border transition flex items-center justify-between group ${language === l.code ? 'bg-primary/20 border-primary text-primary' : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+                        >
+                            <span className="font-bold">{l.label}</span>
+                            {language === l.code && <CheckCircle2 size={18} />}
+                        </button>
+                    ))}
+               </div>
+           </div>
         </div>
       )}
 
