@@ -6,7 +6,7 @@ import {
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
   Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
-  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright
+  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -319,6 +319,17 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     return { income, expense, net: income - expense };
   }, [transactions, filterDate]);
 
+  // Budget Calculations
+  const budgetUsagePercent = budgetLimit > 0 ? (monthlyStats.expense / budgetLimit) * 100 : 0;
+  const isOverBudget = monthlyStats.expense > budgetLimit;
+  const isWarningZone = !isOverBudget && budgetUsagePercent >= 80;
+  const overSpentAmount = monthlyStats.expense - budgetLimit;
+
+  // Search Categories
+  const allSearchCategories = useMemo(() => {
+      return Array.from(new Set([...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].map(c => c.label)));
+  }, []);
+
   const chartData = useMemo(() => {
     const data: Record<string, { name: string, income: number, expense: number }> = {};
     const currentMonthTx = transactions.filter(t => t.date.startsWith(filterDate));
@@ -489,11 +500,32 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                         <span>လျာထားချက်: {budgetLimit > 0 ? budgetLimit.toLocaleString() : 'မသတ်မှတ်ထားပါ'}</span>
                     </div>
                     {budgetLimit > 0 && (
-                        <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
-                            <div 
-                                className={`h-2.5 rounded-full transition-all duration-500 ${monthlyStats.expense > budgetLimit ? 'bg-red-500' : 'bg-primary'}`} 
-                                style={{ width: `${Math.min((monthlyStats.expense / budgetLimit) * 100, 100)}%` }}
-                            ></div>
+                        <div className="space-y-2 mt-1">
+                             <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                                <div 
+                                    className={`h-2.5 rounded-full transition-all duration-500 ${isOverBudget ? 'bg-red-500' : isWarningZone ? 'bg-yellow-500' : 'bg-primary'}`} 
+                                    style={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
+                                ></div>
+                            </div>
+                            
+                            {/* Budget Alerts */}
+                            {isOverBudget && (
+                                <div className="flex items-start gap-2 text-xs text-red-300 bg-red-900/20 p-2 rounded border border-red-500/30">
+                                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                    <span>
+                                       လျာထားချက်ထက် <b className="text-white font-bold">{overSpentAmount.toLocaleString()} ကျပ်</b> ပိုသုံးမိနေပါပြီ!
+                                    </span>
+                                </div>
+                            )}
+
+                            {isWarningZone && (
+                                <div className="flex items-start gap-2 text-xs text-yellow-300 bg-yellow-900/20 p-2 rounded border border-yellow-500/30">
+                                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                                    <span>
+                                       သတိပြုပါ: လျာထားချက်၏ ၈၀% ကျော်နေပါပြီ။ ချွေတာပါ။
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     )}
                 </>
@@ -510,18 +542,41 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
               <span className="text-xs text-dark-muted bg-slate-700 px-2 py-1 rounded border border-dark-border">{filteredAndSortedTransactions.length} ခု</span>
             </div>
             
-            {/* Search Input */}
-            <div className="relative">
-                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                     <Search size={16} className="text-dark-muted"/>
+            {/* Search Input & Category Filters */}
+            <div className="space-y-3">
+                 <div className="relative">
+                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                         <Search size={16} className="text-dark-muted"/>
+                     </div>
+                     <input 
+                         type="text" 
+                         placeholder="အမျိုးအစား သို့မဟုတ် ပမာဏဖြင့် ရှာရန်..." 
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
+                         className="w-full bg-slate-900 border border-dark-border text-white text-sm rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-primary transition"
+                     />
                  </div>
-                 <input 
-                     type="text" 
-                     placeholder="အမျိုးအစား (Category) သို့မဟုတ် ပမာဏဖြင့် ရှာရန်..." 
-                     value={searchQuery}
-                     onChange={(e) => setSearchQuery(e.target.value)}
-                     className="w-full bg-slate-900 border border-dark-border text-white text-sm rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-primary transition"
-                 />
+                 
+                 {/* Category Chips */}
+                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide no-scrollbar">
+                    <div className="flex items-center gap-1 text-dark-muted text-[10px] uppercase font-bold shrink-0">
+                        <Filter size={10} /> Filters:
+                    </div>
+                    {allSearchCategories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setSearchQuery(cat)}
+                          className={`px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap border transition ${searchQuery === cat ? 'bg-primary text-slate-900 border-primary shadow-sm shadow-emerald-500/20' : 'bg-slate-800 text-dark-muted border-slate-700 hover:border-slate-500 hover:text-white'}`}
+                        >
+                          {cat}
+                        </button>
+                    ))}
+                    {searchQuery && (
+                        <button onClick={() => setSearchQuery('')} className="px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 flex items-center gap-1">
+                           <X size={10} /> Clear
+                        </button>
+                    )}
+                 </div>
             </div>
           </div>
 
