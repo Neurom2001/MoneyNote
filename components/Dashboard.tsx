@@ -782,10 +782,10 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         </button>
       )}
 
-      {/* Input Form Modal (Center + Scroll + Categories) */}
+      {/* Input Form Modal (Center on desktop, Top on mobile) */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/80 z-40 flex items-center justify-center p-4">
-          <div className="bg-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-700 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 z-40 flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4">
+          <div className="bg-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-700 max-h-[85vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">
                 {editingId ? 'စာရင်း ပြင်ဆင်ရန်' : 'စာရင်းသစ် ထည့်ရန်'}
