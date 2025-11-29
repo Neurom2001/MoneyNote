@@ -109,7 +109,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                  </div>
                  <div className="flex items-center gap-1 text-primary/80 text-xs">
                      <span className="opacity-75">Brought to you by</span> 
-                     <a href="#" className="font-bold hover:underline hover:text-primary">@swelmyel</a>
+                     <a href="https://t.me/swelmyel" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline hover:text-primary">@swelmyel</a>
                  </div>
                  <div className="mt-1 text-[10px] text-slate-600">
                      Made with <Heart size={10} className="inline text-red-500 mx-0.5" fill="currentColor"/> in Myanmar
@@ -138,7 +138,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     {isLoginView ? 'ကြိုဆိုပါတယ်' : 'အကောင့်သစ်စတင်ရန်'}
                 </h2>
                 <p className="text-slate-400 text-sm lg:text-base">
-                    {isLoginView ? 'သင့်ငွေစာရင်းများကို ကြည့်ရှုရန် ဝင်ရောက်ပါ' : 'မိနစ်ပိုင်းအတွင်း အကောင့်ဖွင့်ပြီး စတင်လိုက်ပါ'}
+                    {isLoginView ? 'သင့်ငွေကြေးများကို စီမံခန့်ခွဲရန် ဝင်ရောက်ပါ' : 'မိနစ်ပိုင်းအတွင်း အကောင့်ဖွင့်ပြီး စတင်လိုက်ပါ'}
                 </p>
             </div>
 

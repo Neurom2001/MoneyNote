@@ -748,7 +748,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
          </div>
          <div className="flex items-center gap-1 text-primary/80">
              <span className="opacity-75">Brought to you by</span> 
-             <a href="#" className="font-bold hover:underline hover:text-primary">@swelmyel</a>
+             <a href="https://t.me/swelmyel" target="_blank" rel="noopener noreferrer" className="font-bold hover:underline hover:text-primary">@swelmyel</a>
          </div>
          <div className="mt-2 text-[10px] text-slate-600">
              Made with <Heart size={10} className="inline text-red-500 mx-0.5" fill="currentColor"/> in Myanmar
