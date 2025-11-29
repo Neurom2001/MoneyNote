@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { loginUser, registerUser } from '../services/storageService';
-import { Wallet, AlertTriangle, Eye, EyeOff, ShieldCheck, PieChart, TrendingUp, Heart, Copyright, Mail, Send, CheckCircle2, AlertCircle, User, Lock, ArrowRight, Languages } from 'lucide-react';
+import { Wallet, AlertTriangle, Eye, EyeOff, ShieldCheck, PieChart, TrendingUp, Heart, Copyright, Mail, Send, CheckCircle2, AlertCircle, User, Lock, ArrowRight } from 'lucide-react';
 import { TRANSLATIONS, Language } from '../utils/translations';
 
 interface AuthProps {
@@ -15,7 +15,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Language State
+  // Language State - Default to 'my' (Myanmar) or load from local storage
   const [language, setLanguage] = useState<Language>((localStorage.getItem('language') as Language) || 'my');
   
   // Toast State
@@ -186,20 +186,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       {/* Mobile: Order 1 (Top), Desktop: Order 2 (Right) */}
       <div className="lg:w-1/2 p-6 lg:p-12 flex items-center justify-center bg-slate-800/30 flex-grow order-1 lg:order-2 min-h-[60vh] lg:min-h-auto backdrop-blur-sm relative">
         
-        {/* Language Selector */}
-        <div className="absolute top-6 right-6 z-20">
-            <div className="flex bg-slate-900 rounded-lg p-1 border border-slate-700">
-                {(['my', 'en', 'ja'] as Language[]).map(lang => (
-                    <button
-                        key={lang}
-                        onClick={() => setLanguage(lang)}
-                        className={`px-4 py-1.5 rounded text-sm font-bold transition ${language === lang ? 'bg-primary text-slate-900' : 'text-slate-400 hover:text-white'}`}
-                    >
-                        {lang === 'my' ? 'MM' : lang === 'en' ? 'EN' : 'JP'}
-                    </button>
-                ))}
-            </div>
-        </div>
+        {/* Language Selector Removed as per request */}
 
         <div className="w-full max-w-md space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-right-8 duration-500 mt-8 lg:mt-0">
             
