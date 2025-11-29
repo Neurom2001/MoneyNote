@@ -61,12 +61,12 @@ export const getTransactions = async (): Promise<Transaction[]> => {
   return data as Transaction[];
 };
 
-export const saveTransaction = async (transaction: Transaction): Promise<Transaction | null> => {
+export const saveTransaction = async (transaction: Transaction): Promise<{ data: Transaction | null; error: string | null }> => {
   // We don't send ID, created_at, or user_id (Supabase handles these)
   // We need to get the current user first to ensure session is active, though RLS handles it
   
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) return { data: null, error: "User session not found. Please login again." };
 
   const { data, error } = await supabase
     .from('transactions')
@@ -84,12 +84,12 @@ export const saveTransaction = async (transaction: Transaction): Promise<Transac
 
   if (error) {
     console.error('Error saving transaction:', error);
-    return null;
+    return { data: null, error: error.message };
   }
-  return data;
+  return { data, error: null };
 };
 
-export const updateTransaction = async (transaction: Transaction): Promise<boolean> => {
+export const updateTransaction = async (transaction: Transaction): Promise<{ success: boolean; error?: string }> => {
   const { error } = await supabase
     .from('transactions')
     .update({
@@ -102,12 +102,12 @@ export const updateTransaction = async (transaction: Transaction): Promise<boole
 
   if (error) {
     console.error('Error updating transaction:', error);
-    return false;
+    return { success: false, error: error.message };
   }
-  return true;
+  return { success: true };
 };
 
-export const deleteTransaction = async (id: string): Promise<boolean> => {
+export const deleteTransaction = async (id: string): Promise<{ success: boolean; error?: string }> => {
   const { error } = await supabase
     .from('transactions')
     .delete()
@@ -115,7 +115,7 @@ export const deleteTransaction = async (id: string): Promise<boolean> => {
 
   if (error) {
     console.error('Error deleting transaction:', error);
-    return false;
+    return { success: false, error: error.message };
   }
-  return true;
+  return { success: true };
 }

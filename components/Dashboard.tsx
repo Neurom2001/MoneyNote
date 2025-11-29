@@ -131,12 +131,12 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
             label,
             type,
           };
-          const success = await updateTransaction(updatedPayload);
+          const { success, error } = await updateTransaction(updatedPayload);
           if (success) {
             setTransactions(prev => prev.map(t => t.id === editingId ? updatedPayload : t));
             showToast('စာရင်း ပြင်ဆင်ပြီးပါပြီ', 'success');
           } else {
-            showToast('ပြင်ဆင်မရပါ', 'error');
+            showToast('ပြင်ဆင်မရပါ: ' + (error || 'Unknown error'), 'error');
           }
         }
       } else {
@@ -147,16 +147,16 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
           date: getLocalDate(), 
           type,
         };
-        const savedData = await saveTransaction(newTransactionPayload);
-        if (savedData) {
-          setTransactions(prev => [...prev, savedData]);
+        const { data, error } = await saveTransaction(newTransactionPayload);
+        if (data) {
+          setTransactions(prev => [...prev, data]);
           showToast('စာရင်းသစ် ထည့်ပြီးပါပြီ', 'success');
         } else {
-          showToast('စာရင်းထည့်မရပါ', 'error');
+          showToast('စာရင်းထည့်မရပါ: ' + (error || 'Database error'), 'error');
         }
       }
-    } catch (error) {
-       showToast('Something went wrong', 'error');
+    } catch (error: any) {
+       showToast('System Error: ' + error.message, 'error');
     }
     
     setIsSaving(false);
@@ -190,12 +190,12 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
   const confirmDelete = async () => {
     if (!selectedTransaction) return;
-    const success = await deleteTransaction(selectedTransaction.id);
+    const { success, error } = await deleteTransaction(selectedTransaction.id);
     if (success) {
       setTransactions(prev => prev.filter(t => t.id !== selectedTransaction.id));
       showToast('စာရင်း ဖျက်ပြီးပါပြီ', 'success');
     } else {
-      showToast('ဖျက်မရပါ', 'error');
+      showToast('ဖျက်မရပါ: ' + (error || 'Unknown error'), 'error');
     }
     setSelectedTransaction(null);
     setShowDeleteConfirm(false);
