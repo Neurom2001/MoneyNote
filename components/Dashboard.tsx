@@ -445,10 +445,10 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         </button>
       )}
 
-      {/* Input Modal / Bottom Sheet */}
+      {/* Input Modal / Bottom Sheet - UPDATED FOR KEYBOARD VISIBILITY */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/80 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-slate-800 w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-200 border border-slate-700">
+        <div className="fixed inset-0 bg-black/80 z-40 flex items-center justify-center p-4">
+          <div className="bg-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-700 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">
                 {editingId ? 'စာရင်း ပြင်ဆင်ရန်' : 'စာရင်းသစ် ထည့်ရန်'}
