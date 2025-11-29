@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, TransactionType } from '../types';
-import { getTransactions, saveTransaction, updateTransaction, deleteTransaction, logoutUser } from '../services/storageService';
-import { LogOut, Plus, Trash2, Wallet, Pencil, History, Home, Download, Loader2 } from 'lucide-react';
+import { getTransactions, saveTransaction, deleteTransaction, updateTransaction, logoutUser } from '../services/storageService';
+import { LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, X, Edit, Save } from 'lucide-react';
 
 interface DashboardProps {
   currentUser: string;
   onLogout: () => void;
 }
+
+type SortKey = 'date' | 'label' | 'amount';
+type SortDirection = 'asc' | 'desc';
 
 const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   // Helper to get local date string YYYY-MM-DD
@@ -33,9 +36,18 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const currentMonth = getLocalMonth();
   const [filterDate, setFilterDate] = useState(currentMonth); // YYYY-MM
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Selection & Editing State
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Sorting State
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: 'date',
+    direction: 'desc' // Default newest first
+  });
 
   useEffect(() => {
     loadData();
@@ -45,14 +57,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const loadData = async () => {
     setIsLoading(true);
     const data = await getTransactions();
-    // Sort Ascending: Oldest date/time first (Top), Newest last (Bottom)
-    setTransactions(data.sort((a, b) => {
-      const dateDiff = new Date(a.date).getTime() - new Date(b.date).getTime();
-      if (dateDiff === 0 && a.created_at && b.created_at) {
-         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      }
-      return dateDiff;
-    }));
+    // Initial load
+    setTransactions(data);
     setIsLoading(false);
   };
 
@@ -64,20 +70,19 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     if (editingId) {
       // Update existing
       const original = transactions.find(t => t.id === editingId);
-      const updatedTransaction: Transaction = {
-        id: editingId,
-        amount: parseFloat(amount),
-        label,
-        date: original ? original.date : getLocalDate(),
-        type,
-      };
+      if (original) {
+        const updatedPayload: Transaction = {
+          ...original,
+          amount: parseFloat(amount),
+          label,
+          type,
+          // We keep the original date for now, or you could update it to today if desired
+        };
 
-      const success = await updateTransaction(updatedTransaction);
-      if (success) {
-        setTransactions(prev => {
-          const updated = prev.map(t => t.id === editingId ? updatedTransaction : t);
-          return updated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        });
+        const success = await updateTransaction(updatedPayload);
+        if (success) {
+          setTransactions(prev => prev.map(t => t.id === editingId ? updatedPayload : t));
+        }
       }
     } else {
       // Create new
@@ -91,10 +96,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
       const savedData = await saveTransaction(newTransactionPayload);
       if (savedData) {
-        setTransactions(prev => {
-          const newList = [...prev, savedData];
-          return newList.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        });
+        setTransactions(prev => [...prev, savedData]);
       }
     }
     
@@ -102,28 +104,38 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     resetForm();
   };
 
-  const handleEdit = (t: Transaction) => {
-    setEditingId(t.id);
-    setAmount(t.amount.toString());
-    setLabel(t.label);
-    setType(t.type);
-    setShowForm(true);
-  };
-
   const resetForm = () => {
     setAmount('');
     setLabel('');
+    setType(TransactionType.EXPENSE);
     setEditingId(null);
     setShowForm(false);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleRowClick = (t: Transaction) => {
+    setSelectedTransaction(t);
+  };
+
+  const handleEditClick = () => {
+    if (!selectedTransaction) return;
+    setAmount(selectedTransaction.amount.toString());
+    setLabel(selectedTransaction.label);
+    setType(selectedTransaction.type);
+    setEditingId(selectedTransaction.id);
+    
+    setShowForm(true);
+    setSelectedTransaction(null); // Close modal
+  };
+
+  const handleDeleteClick = async () => {
+    if (!selectedTransaction) return;
     if (window.confirm('ဖျက်ရန် သေချာပါသလား?')) {
-      const success = await deleteTransaction(id);
+      const success = await deleteTransaction(selectedTransaction.id);
       if (success) {
-        setTransactions(prev => prev.filter(t => t.id !== id));
+        setTransactions(prev => prev.filter(t => t.id !== selectedTransaction.id));
       }
     }
+    setSelectedTransaction(null);
   };
 
   const handleLogout = async () => {
@@ -153,21 +165,61 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     document.body.removeChild(link);
   };
 
-  // Current Month Transactions
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => t.date.startsWith(filterDate));
-  }, [transactions, filterDate]);
+  const handleSort = (key: SortKey) => {
+    setSortConfig(current => {
+      if (current.key === key) {
+        return { key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+      }
+      return { key, direction: 'asc' };
+    });
+  };
+
+  const getSortIcon = (columnKey: SortKey) => {
+    if (sortConfig.key !== columnKey) return <ArrowUpDown size={14} className="ml-1 opacity-30 inline" />;
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUp size={14} className="ml-1 text-primary inline" /> 
+      : <ArrowDown size={14} className="ml-1 text-primary inline" />;
+  };
+
+  // Current Month Transactions + Sorting
+  const filteredAndSortedTransactions = useMemo(() => {
+    // 1. Filter by Month
+    const filtered = transactions.filter(t => t.date.startsWith(filterDate));
+    
+    // 2. Sort
+    return filtered.sort((a, b) => {
+      let valA: string | number = a[sortConfig.key];
+      let valB: string | number = b[sortConfig.key];
+
+      if (sortConfig.key === 'label') {
+        valA = a.label.toLowerCase();
+        valB = b.label.toLowerCase();
+      } else if (sortConfig.key === 'date') {
+        // Use full timestamp if available for stable sort on same day
+        if (valA === valB && a.created_at && b.created_at) {
+             valA = a.created_at;
+             valB = b.created_at;
+        }
+      }
+
+      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [transactions, filterDate, sortConfig]);
 
   // Monthly Stats (For Income/Expense Cards)
   const monthlyStats = useMemo(() => {
-    const income = filteredTransactions
+    // Re-calculate based on current month filter (ignoring sort)
+    const currentMonthTx = transactions.filter(t => t.date.startsWith(filterDate));
+    const income = currentMonthTx
       .filter(t => t.type === TransactionType.INCOME)
       .reduce((acc, curr) => acc + curr.amount, 0);
-    const expense = filteredTransactions
+    const expense = currentMonthTx
       .filter(t => t.type === TransactionType.EXPENSE)
       .reduce((acc, curr) => acc + curr.amount, 0);
     return { income, expense, net: income - expense };
-  }, [filteredTransactions]);
+  }, [transactions, filterDate]);
 
   // History Summary (Group by month, exclude current filterDate)
   const historySummaries = useMemo(() => {
@@ -224,7 +276,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg pb-24 text-dark-text">
+    <div className="min-h-screen bg-dark-bg pb-24 text-dark-text font-sans">
       {/* Header */}
       <header className="bg-dark-card shadow-md sticky top-0 z-20 border-b border-dark-border">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -256,89 +308,76 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
               <h3 className="font-bold text-gray-200">
                 {getBurmeseMonthName(filterDate)} ငွေစာရင်း
               </h3>
-              <span className="text-xs text-dark-muted bg-slate-700 px-2 py-1 rounded border border-dark-border">{filteredTransactions.length} ခု</span>
+              <span className="text-xs text-dark-muted bg-slate-700 px-2 py-1 rounded border border-dark-border">{filteredAndSortedTransactions.length} ခု</span>
             </div>
             
             {/* Monthly Stats Header */}
             <div className="flex gap-4 text-xs sm:text-sm bg-slate-900/50 p-2 rounded-lg justify-around">
                <div className="flex flex-col items-center">
                  <span className="text-dark-muted text-[10px]">ဝင်ငွေ</span>
-                 <span className="text-emerald-400 font-bold">+{monthlyStats.income.toLocaleString()}</span>
+                 <span className="text-emerald-400 font-bold">+{monthlyStats.income.toLocaleString()} ကျပ်</span>
                </div>
                <div className="w-px bg-dark-border"></div>
                <div className="flex flex-col items-center">
                  <span className="text-dark-muted text-[10px]">ထွက်ငွေ</span>
-                 <span className="text-red-400 font-bold">-{monthlyStats.expense.toLocaleString()}</span>
+                 <span className="text-red-400 font-bold">-{monthlyStats.expense.toLocaleString()} ကျပ်</span>
                </div>
                <div className="w-px bg-dark-border"></div>
                <div className="flex flex-col items-center">
                  <span className="text-dark-muted text-[10px]">လလက်ကျန်</span>
                  <span className={`${monthlyStats.net >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold`}>
-                    {monthlyStats.net >= 0 ? '+' : ''}{monthlyStats.net.toLocaleString()}
+                    {monthlyStats.net > 0 ? '+' : ''}{monthlyStats.net.toLocaleString()} ကျပ်
                  </span>
                </div>
             </div>
           </div>
-          
-          <div className="overflow-x-auto max-h-[500px] overflow-y-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-800 sticky top-0 z-10 shadow-sm text-dark-muted">
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-dark-text">
+              <thead className="bg-slate-800 text-dark-muted font-medium border-b border-dark-border">
                 <tr>
-                  <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap">ရက်စွဲ</th>
-                  <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap">အကြောင်းအရာ</th>
-                  <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap">အမျိုးအစား</th>
-                  <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-right whitespace-nowrap">ပမာဏ</th>
-                  <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-center whitespace-nowrap">လုပ်ဆောင်ချက်</th>
+                  <th 
+                    onClick={() => handleSort('date')}
+                    className="px-4 py-3 cursor-pointer hover:bg-slate-700/50 hover:text-white transition select-none w-1/4"
+                  >
+                    <div className="flex items-center">ရက်စွဲ {getSortIcon('date')}</div>
+                  </th>
+                  <th 
+                    onClick={() => handleSort('label')}
+                    className="px-4 py-3 cursor-pointer hover:bg-slate-700/50 hover:text-white transition select-none w-2/4"
+                  >
+                    <div className="flex items-center">အကြောင်းအရာ {getSortIcon('label')}</div>
+                  </th>
+                  <th 
+                    onClick={() => handleSort('amount')}
+                    className="px-4 py-3 text-right cursor-pointer hover:bg-slate-700/50 hover:text-white transition select-none w-1/4"
+                  >
+                     <div className="flex items-center justify-end">ပမာဏ {getSortIcon('amount')}</div>
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-dark-border bg-dark-card">
-                {filteredTransactions.length === 0 ? (
+              <tbody className="divide-y divide-dark-border">
+                {filteredAndSortedTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-10 text-center text-dark-muted">
-                      <div className="flex flex-col items-center justify-center">
-                        <Wallet className="mb-2 opacity-50" size={32} />
-                        <p>စာရင်းမရှိသေးပါ။</p>
-                      </div>
+                    <td colSpan={3} className="px-4 py-8 text-center text-dark-muted italic">
+                      စာရင်းမရှိသေးပါ
                     </td>
                   </tr>
                 ) : (
-                  filteredTransactions.map((t) => (
-                    <tr key={t.id} className="hover:bg-slate-800/80 transition duration-150 group">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-dark-muted font-mono">
+                  filteredAndSortedTransactions.map((t) => (
+                    <tr 
+                        key={t.id} 
+                        onClick={() => handleRowClick(t)}
+                        className="hover:bg-slate-800/50 transition cursor-pointer active:bg-slate-800 group"
+                    >
+                      <td className="px-4 py-3 whitespace-nowrap text-dark-muted">
                         {formatDateDisplay(t.date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">{t.label}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          t.type === TransactionType.INCOME 
-                            ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-800' 
-                            : 'bg-red-900/50 text-red-400 border border-red-800'
-                        }`}>
-                          {t.type === TransactionType.INCOME ? 'ဝင်ငွေ' : 'ထွက်ငွေ'}
-                        </span>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-white">{t.label}</div>
                       </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${
-                         t.type === TransactionType.INCOME ? 'text-emerald-400' : 'text-red-400'
-                      }`}>
-                        {t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toLocaleString()} ကျပ်
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        <div className="flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => handleEdit(t)} 
-                            className="text-blue-400 hover:text-blue-300 p-1 hover:bg-slate-700 rounded-full transition" 
-                            title="ပြင်ဆင်ရန်"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(t.id)} 
-                            className="text-red-400 hover:text-red-300 p-1 hover:bg-slate-700 rounded-full transition" 
-                            title="ဖျက်ရန်"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+                      <td className={`px-4 py-3 text-right font-bold ${t.type === TransactionType.INCOME ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toLocaleString()}
                       </td>
                     </tr>
                   ))
@@ -348,157 +387,206 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
           </div>
         </div>
 
-        {/* Previous Months History */}
-        {historySummaries.length > 0 && (
-          <div className="bg-dark-card rounded-xl shadow-sm border border-dark-border overflow-hidden">
-             <div className="p-4 border-b border-dark-border bg-slate-800/50">
-                <h3 className="font-bold text-gray-200 flex items-center gap-2">
-                  <History size={18} className="text-dark-muted" />
-                  လဟောင်း စာရင်းများ (နောက်ဆုံး ၁၂ လ)
-                </h3>
-             </div>
-             <div className="divide-y divide-dark-border">
-               {historySummaries.map(([monthKey, stats]) => (
-                 <div 
-                   key={monthKey} 
-                   onClick={() => {
-                     setFilterDate(monthKey);
-                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                   }}
-                   className="p-4 flex flex-col sm:flex-row justify-between items-center hover:bg-slate-800/80 transition cursor-pointer group"
-                 >
-                    <div className="font-medium text-gray-300 mb-2 sm:mb-0 group-hover:text-primary transition-colors">
-                      {getBurmeseMonthName(monthKey)}
-                    </div>
-                    <div className="flex gap-4 text-xs sm:text-sm">
-                      <div className="text-emerald-400">
-                        <span className="text-dark-muted text-xs mr-1">ဝင်:</span>
-                        +{stats.income.toLocaleString()}
-                      </div>
-                      <div className="text-red-400">
-                        <span className="text-dark-muted text-xs mr-1">ထွက်:</span>
-                        -{stats.expense.toLocaleString()}
-                      </div>
-                      <div className={`font-bold ${stats.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                         <span className="text-dark-muted text-xs mr-1">ကျန်:</span>
-                         {stats.net >= 0 ? '+' : ''}{stats.net.toLocaleString()} ကျပ်
-                      </div>
-                    </div>
-                 </div>
-               ))}
-             </div>
-          </div>
+        {/* Home Button (When viewing history) */}
+        {!isCurrentMonth && (
+            <button 
+                onClick={() => setFilterDate(currentMonth)}
+                className="w-full py-3 rounded-xl border border-primary text-primary hover:bg-primary/10 transition flex items-center justify-center gap-2 font-bold"
+            >
+                <Home size={20} />
+                လက်ရှိလသို့ ပြန်သွားမည်
+            </button>
         )}
 
-        {/* Month Filter moved to bottom */}
-        <div className="flex items-center justify-between bg-dark-card p-3 rounded-xl shadow-sm border border-dark-border">
-          <label className="text-dark-muted font-medium">လအလိုက် ကြည့်ရန်:</label>
-          <input 
-            type="month" 
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="bg-slate-700 border border-dark-border rounded-lg px-3 py-1 text-white focus:outline-none focus:border-primary appearance-none"
-            style={{ colorScheme: 'dark' }}
-          />
+        {/* History List */}
+        <div className="space-y-3 pt-4 border-t border-dark-border">
+          <h3 className="text-dark-muted text-sm font-bold uppercase tracking-wider">လဟောင်း စာရင်းများ</h3>
+          {historySummaries.length === 0 ? (
+             <p className="text-dark-muted text-sm">လဟောင်းစာရင်း မရှိသေးပါ</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {historySummaries.map(([monthKey, stats]) => (
+                <button 
+                  key={monthKey}
+                  onClick={() => {
+                      setFilterDate(monthKey);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="bg-dark-card p-3 rounded-lg border border-dark-border hover:border-primary/50 transition text-left group"
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-bold text-white group-hover:text-primary transition">{getBurmeseMonthName(monthKey)}</span>
+                    <span className={`text-xs font-bold ${stats.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {stats.net > 0 ? '+' : ''}{stats.net.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs text-dark-muted">
+                    <span>ဝင်: {stats.income.toLocaleString()}</span>
+                    <span>ထွက်: {stats.expense.toLocaleString()}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-
       </main>
 
-      {/* Floating Action Button (Home or Plus) */}
-      {isCurrentMonth ? (
+      {/* Floating Action Button */}
+      {isCurrentMonth && (
         <button
           onClick={() => {
-            resetForm();
-            setShowForm(true);
+              resetForm();
+              setShowForm(true);
           }}
-          className="fixed bottom-6 right-6 bg-primary hover:bg-emerald-600 text-slate-900 p-4 rounded-full shadow-lg transition-all transform hover:scale-105 z-20 border-2 border-slate-900"
-          title="စာရင်းသစ်ထည့်မည်"
+          className="fixed bottom-6 right-6 bg-primary hover:bg-emerald-600 text-slate-900 rounded-full p-4 shadow-lg shadow-emerald-900/20 transition hover:scale-105 active:scale-95 z-30"
+          aria-label="Add Transaction"
         >
-          <Plus size={28} />
-        </button>
-      ) : (
-        <button
-          onClick={() => setFilterDate(currentMonth)}
-          className="fixed bottom-6 right-6 bg-slate-700 hover:bg-slate-600 text-white p-4 rounded-full shadow-lg transition-all transform hover:scale-105 z-20 border-2 border-slate-500"
-          title="လက်ရှိလသို့ပြန်သွားရန်"
-        >
-          <Home size={28} />
+          <Plus size={28} strokeWidth={2.5} />
         </button>
       )}
 
-      {/* Add/Edit Transaction Modal */}
+      {/* Input Modal / Bottom Sheet */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 animate-fade-in backdrop-blur-sm">
-          <div className="bg-dark-card rounded-2xl w-full max-w-sm p-6 shadow-2xl transform transition-all scale-100 border border-dark-border">
-            <h2 className="text-xl font-bold mb-4 text-white">
-              {editingId ? 'စာရင်း ပြင်ဆင်ရန်' : 'စာရင်းသစ် ထည့်မည်'}
-            </h2>
-            <form onSubmit={handleSaveTransaction} className="space-y-4">
+        <div className="fixed inset-0 bg-black/80 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-slate-800 w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-200 border border-slate-700">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">
+                {editingId ? 'စာရင်း ပြင်ဆင်ရန်' : 'စာရင်းသစ် ထည့်ရန်'}
+              </h2>
+              <button 
+                onClick={resetForm}
+                className="text-dark-muted hover:text-white transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTransaction} className="space-y-5">
               
-              {/* Type Switcher */}
-              <div className="flex bg-slate-700 p-1 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => setType(TransactionType.INCOME)}
-                  className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === TransactionType.INCOME ? 'bg-dark-card text-emerald-400 shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
-                >
-                  ငွေဝင်
-                </button>
+              {/* Type Selector */}
+              <div className="grid grid-cols-2 gap-3 p-1 bg-slate-900 rounded-xl">
                 <button
                   type="button"
                   onClick={() => setType(TransactionType.EXPENSE)}
-                  className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${type === TransactionType.EXPENSE ? 'bg-dark-card text-red-400 shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
+                  className={`py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 ${
+                    type === TransactionType.EXPENSE
+                      ? 'bg-red-500 text-white shadow-lg'
+                      : 'text-dark-muted hover:text-white'
+                  }`}
                 >
-                  ငွေထွက်
+                  <ArrowDown size={16} /> ထွက်ငွေ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setType(TransactionType.INCOME)}
+                  className={`py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 ${
+                    type === TransactionType.INCOME
+                      ? 'bg-emerald-500 text-slate-900 shadow-lg'
+                      : 'text-dark-muted hover:text-white'
+                  }`}
+                >
+                  <ArrowUp size={16} /> ဝင်ငွေ
                 </button>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-dark-muted mb-1">ပမာဏ (ကျပ်)</label>
+                <label className="block text-dark-muted text-xs font-bold mb-1.5 uppercase tracking-wider">
+                  ပမာဏ (ကျပ်)
+                </label>
                 <input
                   type="number"
+                  inputMode="numeric"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-700 border border-dark-border text-white rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  className="w-full bg-slate-700 text-white text-2xl font-bold px-4 py-3 rounded-xl border-2 border-transparent focus:border-primary focus:outline-none transition placeholder-slate-500"
                   placeholder="0"
-                  required
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-dark-muted mb-1">အကြောင်းအရာ</label>
+                <label className="block text-dark-muted text-xs font-bold mb-1.5 uppercase tracking-wider">
+                  အကြောင်းအရာ
+                </label>
                 <input
                   type="text"
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-700 border border-dark-border text-white rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                  placeholder="ဥပမာ - ဈေးဖိုး"
-                  required
+                  className="w-full bg-slate-700 text-white px-4 py-3 rounded-xl border-2 border-transparent focus:border-primary focus:outline-none transition placeholder-slate-500"
+                  placeholder="ဥပမာ - မနက်စာ"
                 />
               </div>
 
-              <div className="pt-2 flex gap-3">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="flex-1 px-4 py-2 border border-dark-border text-gray-300 rounded-lg hover:bg-slate-700 transition"
-                  disabled={isSaving}
-                >
-                  မလုပ်တော့ပါ
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className={`flex-1 px-4 py-2 bg-primary text-slate-900 font-bold rounded-lg hover:bg-emerald-600 transition ${isSaving ? 'opacity-50' : ''}`}
-                >
-                  {isSaving ? 'သိမ်းနေသည်...' : (editingId ? 'ပြင်ဆင်မည်' : 'သိမ်းမည်')}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={isSaving || !amount || !label}
+                className="w-full bg-primary hover:bg-emerald-600 text-slate-900 font-bold py-4 rounded-xl shadow-lg shadow-emerald-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 mt-4"
+              >
+                {isSaving ? (
+                    <Loader2 className="animate-spin" /> 
+                ) : (
+                    <>
+                        {editingId ? <Save size={20} /> : <Plus size={20} />}
+                        {editingId ? 'သိမ်းဆည်းမည်' : 'စာရင်းသွင်းမည်'}
+                    </>
+                )}
+              </button>
             </form>
           </div>
         </div>
       )}
+
+      {/* Action Modal (When clicking a row) */}
+      {selectedTransaction && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={() => setSelectedTransaction(null)}
+        >
+          <div 
+            className="bg-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-6 shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                 <h3 className="text-lg font-bold text-white break-words">{selectedTransaction.label}</h3>
+                 <p className="text-dark-muted text-sm">{formatDateDisplay(selectedTransaction.date)}</p>
+              </div>
+              <button onClick={() => setSelectedTransaction(null)} className="text-dark-muted hover:text-white bg-slate-700 p-1 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="text-3xl font-bold text-center py-2 bg-slate-900/50 rounded-xl">
+              <span className={selectedTransaction.type === TransactionType.INCOME ? 'text-emerald-400' : 'text-red-400'}>
+                {selectedTransaction.type === TransactionType.INCOME ? '+' : '-'}{selectedTransaction.amount.toLocaleString()} <span className="text-sm text-dark-muted font-normal">ကျပ်</span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={handleEditClick}
+                className="flex flex-col items-center justify-center gap-2 bg-slate-700 hover:bg-blue-600/20 hover:border-blue-500/50 border border-transparent p-4 rounded-xl transition group"
+              >
+                <div className="bg-blue-500/10 p-3 rounded-full group-hover:bg-blue-500 text-blue-400 group-hover:text-white transition">
+                  <Edit size={24} />
+                </div>
+                <span className="text-sm font-bold text-blue-100 group-hover:text-blue-400">ပြင်ဆင်မည်</span>
+              </button>
+              
+              <button 
+                onClick={handleDeleteClick}
+                className="flex flex-col items-center justify-center gap-2 bg-slate-700 hover:bg-red-600/20 hover:border-red-500/50 border border-transparent p-4 rounded-xl transition group"
+              >
+                 <div className="bg-red-500/10 p-3 rounded-full group-hover:bg-red-500 text-red-400 group-hover:text-white transition">
+                  <Trash2 size={24} />
+                </div>
+                <span className="text-sm font-bold text-red-100 group-hover:text-red-400">ဖျက်မည်</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
