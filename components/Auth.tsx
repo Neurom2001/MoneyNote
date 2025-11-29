@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { loginUser, registerUser } from '../services/storageService';
 import { Wallet, AlertTriangle, Eye, EyeOff, ShieldCheck, PieChart, TrendingUp, Heart, Copyright, Mail, Send, CheckCircle2, AlertCircle, User, Lock, ArrowRight } from 'lucide-react';
 
@@ -28,6 +28,17 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 5000); 
   };
+
+  // Check for registration success flag on mount/view change
+  useEffect(() => {
+    if (isLoginView) {
+      const regSuccess = localStorage.getItem('registrationSuccess');
+      if (regSuccess === 'true') {
+        showToast('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ ကျေးဇူးပြု၍ စကားဝှက်ဖြင့် ပြန်လည်ဝင်ရောက်ပါ။', 'success');
+        localStorage.removeItem('registrationSuccess');
+      }
+    }
+  }, [isLoginView]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +75,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         if (result.success) {
           // Clear fields
           setPassword('');
-          // Switch to login view immediately
+          // Set flag in localStorage because component state might reset or unmount
+          localStorage.setItem('registrationSuccess', 'true');
+          // Switch to login view
           setIsLoginView(true);
-          // Show clear instruction
-          showToast('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ ကျေးဇူးပြု၍ စကားဝှက်ဖြင့် ပြန်လည်ဝင်ရောက်ပါ။', 'success');
           setIsLoading(false);
         } else {
           setError(result.error || 'အကောင့်ဖွင့်မရပါ။ ထပ်မံကြိုးစားကြည့်ပါ။');

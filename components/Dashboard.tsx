@@ -120,19 +120,21 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     loadData();
     loadBudget();
     
-    // Realtime Subscription
-    const channel = supabase.channel('realtime_transactions')
+    // Realtime Subscription for Transactions
+    const txChannel = supabase.channel('realtime_transactions')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'transactions',
-        },
-        () => {
-          // When any change happens in DB, reload data
-          loadData();
-        }
+        { event: '*', schema: 'public', table: 'transactions' },
+        () => { loadData(); }
+      )
+      .subscribe();
+
+    // Realtime Subscription for Budgets (Fix for cross-device sync)
+    const budgetChannel = supabase.channel('realtime_budgets')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'budgets' },
+        () => { loadBudget(); }
       )
       .subscribe();
 
@@ -145,7 +147,8 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(txChannel);
+      supabase.removeChannel(budgetChannel);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
