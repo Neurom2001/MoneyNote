@@ -596,7 +596,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg pb-24 text-dark-text font-sans relative flex flex-col">
+    <div className="min-h-screen bg-dark-bg pb-28 sm:pb-24 text-dark-text font-sans relative flex flex-col">
       {/* Toast */}
       {toast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-300">
@@ -607,21 +607,21 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         </div>
       )}
 
-      {/* Header */}
-      <header className="bg-dark-card shadow-md sticky top-0 z-20 border-b border-dark-border">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      {/* Header (Bottom on Mobile, Top on Desktop) */}
+      <header className="bg-dark-card shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] sm:shadow-md fixed bottom-0 left-0 right-0 sm:sticky sm:top-0 z-40 border-t sm:border-t-0 sm:border-b border-dark-border transition-all duration-300">
+        <div className="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="bg-primary/20 p-2.5 rounded-xl">
                 <Wallet className="text-primary" size={24} />
             </div>
             <div>
                 <h1 className="text-xl font-bold text-white leading-tight">{t.appName}</h1>
-                <p className="text-xs text-dark-muted">{t.appDesc}</p>
+                <p className="text-xs text-dark-muted hidden sm:block">{t.appDesc}</p>
             </div>
           </div>
           <div className="flex gap-2 items-center">
             {deferredPrompt && (
-                <button onClick={handleInstallClick} className="bg-primary/10 hover:bg-primary/20 text-primary transition text-xs sm:text-sm border border-primary/20 px-4 py-2 rounded-xl flex items-center gap-1 font-bold animate-pulse">
+                <button onClick={handleInstallClick} className="bg-primary/10 hover:bg-primary/20 text-primary transition text-xs sm:text-sm border border-primary/20 px-3 sm:px-4 py-2 rounded-xl flex items-center gap-1 font-bold animate-pulse">
                     <Smartphone size={16} /> <span className="hidden sm:inline">Install App</span>
                 </button>
             )}
@@ -638,7 +638,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
                 {showSettingsMenu && (
                     <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowSettingsMenu(false)}></div>
-                    <div className="absolute right-0 top-full mt-2 w-72 bg-slate-800 rounded-2xl shadow-2xl border border-dark-border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute right-0 bottom-full mb-3 sm:top-full sm:mt-2 sm:bottom-auto sm:mb-0 w-72 bg-slate-800 rounded-2xl shadow-2xl border border-dark-border z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 sm:slide-in-from-top-2">
                         
                         <div className="p-2 space-y-1 bg-slate-800">
                             {/* New: Language Button */}
@@ -973,7 +973,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
       {isCurrentMonth && (
         <button
           onClick={() => { resetForm(); setShowForm(true); }}
-          className="fixed bottom-6 right-6 bg-primary hover:bg-emerald-600 text-slate-900 rounded-full p-4 shadow-lg shadow-emerald-900/20 transition hover:scale-105 active:scale-95 z-30"
+          className="fixed bottom-24 sm:bottom-6 right-6 bg-primary hover:bg-emerald-600 text-slate-900 rounded-full p-4 shadow-lg shadow-emerald-900/20 transition hover:scale-105 active:scale-95 z-30"
         >
           <Plus size={32} strokeWidth={2.5} />
         </button>
@@ -981,7 +981,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
       {/* Input Form Modal (Center on desktop, Top on mobile) */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/80 z-40 flex items-start sm:items-center justify-center p-4 pt-2 sm:pt-4">
+        <div className="fixed inset-0 bg-black/80 z-[60] flex items-start sm:items-center justify-center p-4 pt-2 sm:pt-4">
           <div className="bg-slate-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-700 max-h-[85vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-white">
