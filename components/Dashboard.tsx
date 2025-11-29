@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, TransactionType, Theme } from '../types';
 import { 
@@ -10,7 +11,7 @@ import {
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
   Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
-  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, HelpCircle, Mail, Send, Settings, Target, AlertTriangle, SlidersHorizontal, Languages, Moon, Sun, ClipboardList, PiggyBank
+  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, HelpCircle, Mail, Send, Settings, AlertTriangle, SlidersHorizontal, Languages, Moon, Sun, ClipboardList, PiggyBank
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -220,7 +221,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
       : `Language changed to ${langLabel}`, 
     'success');
 
-    await saveUserSettings({ currency: 'MMK', language: newLang, theme });
+    await saveUserSettings({ language: newLang, theme });
   };
 
   const handleThemeChange = async (newTheme: Theme) => {
@@ -232,7 +233,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
       : `Theme changed to ${newTheme === 'dark' ? 'Night Mode' : 'Day Mode'}`, 
     'success');
 
-    await saveUserSettings({ currency: 'MMK', language, theme: newTheme });
+    await saveUserSettings({ language, theme: newTheme });
   };
 
   const loadUserSettings = async () => {
@@ -243,7 +244,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         localStorage.setItem('language', settings.language);
         if (settings.theme) localStorage.setItem('theme', settings.theme);
     } else {
-        await saveUserSettings({ currency: 'MMK', language, theme });
+        await saveUserSettings({ language, theme });
     }
   };
 

@@ -41,7 +41,6 @@ export interface BudgetSettings {
 export interface UserSettings {
   id?: string;
   user_id?: string;
-  currency: string;
   language: Language;
   theme: Theme;
   updated_at?: string;

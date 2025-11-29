@@ -1,3 +1,4 @@
+
 import { Transaction, TransactionType, BudgetSettings, UserSettings, Language, Theme } from '../types';
 import { supabase } from './supabaseClient';
 
@@ -183,7 +184,7 @@ export const deleteBudgetSettings = async (): Promise<{ success: boolean; error?
   return { success: true };
 };
 
-// --- User Settings Functions (Language & Currency & Theme) ---
+// --- User Settings Functions (Language & Theme) ---
 
 export const getUserSettings = async (): Promise<UserSettings | null> => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -207,7 +208,6 @@ export const saveUserSettings = async (settings: UserSettings): Promise<{ succes
     .from('user_settings')
     .upsert({
       user_id: user.id,
-      currency: settings.currency,
       language: settings.language,
       theme: settings.theme,
       updated_at: new Date().toISOString()

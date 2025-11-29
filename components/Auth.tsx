@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { loginUser, registerUser } from '../services/storageService';
 import { Wallet, AlertTriangle, Eye, EyeOff, ShieldCheck, PieChart, TrendingUp, Heart, Copyright, Mail, Send, CheckCircle2, AlertCircle, User, Lock, ArrowRight } from 'lucide-react';
@@ -15,7 +16,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const [language, setLanguage] = useState<Language>((localStorage.getItem('language') as Language) || 'my');
+  // Use default language or from local storage, but remove selector UI
+  const [language] = useState<Language>((localStorage.getItem('language') as Language) || 'my');
   const [toast, setToast] = useState<{msg: string, type: 'success' | 'error'} | null>(null);
 
   const t = TRANSLATIONS[language];
@@ -31,10 +33,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 5000); 
   };
-
-  useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
 
   useEffect(() => {
     if (isLoginView) {
@@ -110,14 +108,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       )}
 
       {/* Branding Section */}
-      {/* Order 2 on Mobile (Bottom), Order 1 on Desktop (Left) */}
-      <div className="w-full lg:w-1/2 order-2 lg:order-1 bg-slate-900 border-t lg:border-t-0 lg:border-r border-dark-border relative flex flex-col z-10 lg:h-full">
+      {/* Flex container optimized for desktop centering */}
+      <div className="w-full lg:w-1/2 order-2 lg:order-1 bg-slate-900 border-t lg:border-t-0 lg:border-r border-dark-border relative flex flex-col z-10 lg:h-full lg:justify-center">
          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20 lg:opacity-10">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse"></div>
             <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-500 rounded-full blur-3xl opacity-50"></div>
          </div>
 
-         <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left w-full h-full p-8 lg:p-16 justify-center">
+         <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left w-full p-8 lg:p-16 justify-center">
             <div className="flex items-center gap-3 mb-6 lg:mb-8">
                 <div className="bg-gradient-to-br from-primary to-emerald-600 p-2.5 rounded-xl shadow-lg shadow-primary/20">
                     <Wallet className="text-slate-900 w-8 h-8 lg:w-9 lg:h-9" />
@@ -147,7 +145,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 ))}
             </div>
 
-            <div className="text-center lg:text-left flex flex-col items-center lg:items-start gap-2 w-full pt-10 border-t border-slate-800 lg:border-none mt-auto">
+            <div className="text-center lg:text-left flex flex-col items-center lg:items-start gap-2 w-full pt-10 border-t border-slate-800 lg:border-none mt-auto lg:mt-0">
                  <div className="flex items-center gap-1 font-bold text-slate-500 text-xs">
                      <Copyright size={14} /> {new Date().getFullYear()} {t.appName}. All rights reserved.
                  </div>
@@ -168,7 +166,6 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       </div>
 
       {/* Auth Form Section */}
-      {/* Order 1 on Mobile (Top), Order 2 on Desktop (Right) */}
       <div className="w-full lg:w-1/2 order-1 lg:order-2 bg-slate-800/30 backdrop-blur-sm relative z-20 lg:h-full flex flex-col overflow-y-auto">
         <div className="w-full max-w-md mx-auto p-6 lg:p-16 py-12 my-auto">
             
