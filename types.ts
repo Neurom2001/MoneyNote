@@ -23,3 +23,9 @@ export interface MonthlyStats {
   totalExpense: number;
   balance: number;
 }
+
+export interface BudgetSettings {
+  limit_amount: number;
+  warning_percent: number;
+  danger_percent: number;
+}

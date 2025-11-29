@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, TransactionType } from '../types';
-import { getTransactions, saveTransaction, deleteTransaction, updateTransaction, logoutUser } from '../services/storageService';
+import { 
+  getTransactions, saveTransaction, deleteTransaction, updateTransaction, logoutUser,
+  getBudgetSettings, saveBudgetSettings, deleteBudgetSettings 
+} from '../services/storageService';
 import { supabase } from '../services/supabaseClient';
 import { 
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
@@ -115,15 +118,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   // --- Effects ---
   useEffect(() => {
     loadData();
-    
-    // Load budget settings from local storage
-    const savedBudget = localStorage.getItem(`budget_${currentUser}`);
-    const savedWarning = localStorage.getItem(`budget_warning_${currentUser}`);
-    const savedDanger = localStorage.getItem(`budget_danger_${currentUser}`);
-
-    if (savedBudget) setBudgetLimit(parseInt(savedBudget));
-    if (savedWarning) setWarningPercent(parseInt(savedWarning));
-    if (savedDanger) setDangerPercent(parseInt(savedDanger));
+    loadBudget();
     
     // Realtime Subscription
     const channel = supabase.channel('realtime_transactions')
@@ -136,7 +131,6 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         },
         () => {
           // When any change happens in DB, reload data
-          // This keeps all tabs/devices in sync
           loadData();
         }
       )
@@ -170,6 +164,18 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     setIsLoading(false);
   };
 
+  const loadBudget = async () => {
+    const settings = await getBudgetSettings();
+    if (settings) {
+        setBudgetLimit(settings.limit_amount);
+        setWarningPercent(settings.warning_percent);
+        setDangerPercent(settings.danger_percent);
+    } else {
+        // No budget set yet
+        setBudgetLimit(0);
+    }
+  };
+
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
@@ -186,7 +192,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     setShowBudgetModal(true);
   };
 
-  const handleSaveBudget = () => {
+  const handleSaveBudget = async () => {
     const val = parseInt(tempBudget);
     
     if (isNaN(val) || val <= 0) {
@@ -199,23 +205,32 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
         return;
     }
 
-    setBudgetLimit(val);
-    setWarningPercent(tempWarning);
-    setDangerPercent(tempDanger);
+    const { success, error } = await saveBudgetSettings({
+        limit_amount: val,
+        warning_percent: tempWarning,
+        danger_percent: tempDanger
+    });
 
-    localStorage.setItem(`budget_${currentUser}`, val.toString());
-    localStorage.setItem(`budget_warning_${currentUser}`, tempWarning.toString());
-    localStorage.setItem(`budget_danger_${currentUser}`, tempDanger.toString());
-
-    setShowBudgetModal(false);
-    showToast('ဘတ်ဂျက် setting များကို သိမ်းဆည်းပြီးပါပြီ');
+    if (success) {
+        setBudgetLimit(val);
+        setWarningPercent(tempWarning);
+        setDangerPercent(tempDanger);
+        setShowBudgetModal(false);
+        showToast('ဘတ်ဂျက် setting များကို သိမ်းဆည်းပြီးပါပြီ');
+    } else {
+        showToast('Error saving budget: ' + error, 'error');
+    }
   };
 
-  const handleRemoveBudget = () => {
-    setBudgetLimit(0);
-    localStorage.setItem(`budget_${currentUser}`, '0');
-    setShowBudgetModal(false);
-    showToast('ဘတ်ဂျက် ဖျက်သိမ်းလိုက်ပါပြီ');
+  const handleRemoveBudget = async () => {
+    const { success, error } = await deleteBudgetSettings();
+    if (success) {
+        setBudgetLimit(0);
+        setShowBudgetModal(false);
+        showToast('ဘတ်ဂျက် ဖျက်သိမ်းလိုက်ပါပြီ');
+    } else {
+        showToast('Error removing budget: ' + error, 'error');
+    }
   };
 
   const handleSaveTransaction = async (e: React.FormEvent) => {

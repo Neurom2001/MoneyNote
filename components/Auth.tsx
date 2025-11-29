@@ -26,7 +26,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 4000); // 4 seconds
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,9 +62,12 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       } else {
         const result = await registerUser(username, password);
         if (result.success) {
-          showToast('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ ကျေးဇူးပြု၍ ဝင်ရောက်ပါ။', 'success');
-          setIsLoginView(true);
+          // Clear fields
           setPassword('');
+          // Switch to login view immediately
+          setIsLoginView(true);
+          // Show clear instruction
+          showToast('အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။ ကျေးဇူးပြု၍ စကားဝှက်ဖြင့် ပြန်လည်ဝင်ရောက်ပါ။', 'success');
           setIsLoading(false);
         } else {
           setError(result.error || 'အကောင့်ဖွင့်မရပါ။ ထပ်မံကြိုးစားကြည့်ပါ။');
@@ -82,10 +85,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       
       {/* Toast Notification */}
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-300">
-          <div className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'success' ? 'bg-emerald-900/90 border-emerald-500 text-emerald-100' : 'bg-red-900/90 border-red-500 text-red-100'}`}>
-            {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-            <span className="text-sm font-medium">{toast.msg}</span>
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-top-2 fade-in duration-300 w-11/12 max-w-sm text-center">
+          <div className={`flex flex-col items-center gap-2 px-6 py-4 rounded-xl shadow-2xl border backdrop-blur-md ${toast.type === 'success' ? 'bg-emerald-900/95 border-emerald-500 text-emerald-100' : 'bg-red-900/95 border-red-500 text-red-100'}`}>
+            {toast.type === 'success' ? <CheckCircle2 size={32} className="mb-1" /> : <AlertCircle size={32} className="mb-1" />}
+            <span className="text-sm font-bold">{toast.msg}</span>
           </div>
         </div>
       )}

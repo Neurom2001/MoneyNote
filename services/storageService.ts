@@ -1,4 +1,4 @@
-import { Transaction, TransactionType } from '../types';
+import { Transaction, TransactionType, BudgetSettings } from '../types';
 import { supabase } from './supabaseClient';
 
 // Helper to convert username to a valid fake email for Supabase Auth
@@ -125,4 +125,60 @@ export const deleteTransaction = async (id: string): Promise<{ success: boolean;
     return { success: false, error: error.message };
   }
   return { success: true };
-}
+};
+
+// --- Budget Functions ---
+
+export const getBudgetSettings = async (): Promise<BudgetSettings | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('budgets')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error) {
+    // It's okay if no budget exists yet
+    return null;
+  }
+
+  return data as BudgetSettings;
+};
+
+export const saveBudgetSettings = async (settings: BudgetSettings): Promise<{ success: boolean; error?: string }> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "User not found" };
+
+  const { error } = await supabase
+    .from('budgets')
+    .upsert({
+      user_id: user.id,
+      limit_amount: settings.limit_amount,
+      warning_percent: settings.warning_percent,
+      danger_percent: settings.danger_percent,
+      updated_at: new Date().toISOString()
+    });
+
+  if (error) {
+    console.error('Error saving budget:', error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+};
+
+export const deleteBudgetSettings = async (): Promise<{ success: boolean; error?: string }> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "User not found" };
+
+  const { error } = await supabase
+    .from('budgets')
+    .delete()
+    .eq('user_id', user.id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+};
