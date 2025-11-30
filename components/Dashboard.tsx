@@ -214,92 +214,133 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
 
   // --- Voice Command Logic ---
   const convertBurmeseNumbers = (str: string) => {
+    // Replace Burmese digits with English digits
     const burmeseNums = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'];
     return str.replace(/[၀-၉]/g, (d) => burmeseNums.indexOf(d).toString());
   };
 
   const processVoiceCommand = async (transcript: string) => {
-    console.log('Processing transcript:', transcript);
-    const cleanTranscript = convertBurmeseNumbers(transcript);
+    console.log('Original transcript:', transcript);
     
-    // Regex to find numbers (Amount)
-    const amountMatch = cleanTranscript.match(/(\d+)/);
-    const detectedAmount = amountMatch ? amountMatch[0] : '';
+    // 1. Normalize numbers
+    let cleanTranscript = convertBurmeseNumbers(transcript).toLowerCase();
     
-    if (!detectedAmount) {
-        showToast(language === 'my' ? 'ပမာဏကို နားမလည်ပါ (ဥပမာ: မနက်စာ ၁၅၀၀)' : 'Could not detect amount', 'error');
+    // 2. Regex to find "Description + Number" pairs
+    // Pattern: 
+    // (.+?) -> Group 1: Non-greedy match for text/description
+    // ((?:\d+,?)+(?:\.\d+)?) -> Group 2: The Number (digits, optional commas, optional decimal)
+    const regex = /(.+?)((?:\d+,?)+(?:\.\d+)?)/g;
+    
+    let match;
+    const parsedItems: Partial<Transaction>[] = [];
+    
+    // Fuzzy Keyword Mapping for Categories
+    const expenseMappings = [
+      { category: t.cat_food, keywords: ['စား', 'သောက်', 'မုန့်', 'ထမင်း', 'ကော်ဖီ', 'လက်ဖက်ရည်', 'နေ့လည်စာ', 'ညစာ', 'မနက်စာ', 'food', 'eat', 'drink', 'rice', 'coffee', 'tea'] },
+      { category: t.cat_transport, keywords: ['ကား', 'ဆီ', 'လမ်းစရိတ်', 'taxi', 'bus', 'တက္ကစီ', 'ရထား', 'ဆိုင်ကယ်', 'transport', 'fuel'] },
+      { category: t.cat_bill, keywords: ['ဖုန်း', 'အင်တာနက်', 'ဒေတာ', 'ဘေလ်', 'မီတာ', 'wifi', 'data', 'bill', 'internet'] },
+      { category: t.cat_shopping, keywords: ['ဈေး', 'ဝယ်', 'အင်္ကျီ', 'ဖိနပ်', 'shop', 'buy', 'clothes'] },
+      { category: t.cat_health, keywords: ['ဆေး', 'health', 'doctor', 'medicine'] }
+    ];
+
+    const incomeMappings = [
+      { category: t.cat_salary, keywords: ['လစာ', 'salary'] },
+      { category: t.cat_bonus, keywords: ['ဘောနပ်စ်', 'bonus'] },
+      { category: t.cat_sales, keywords: ['အရောင်း', 'sales'] },
+      { category: t.cat_pocket, keywords: ['မုန့်ဖိုး', 'allowance'] },
+      { category: t.cat_refund, keywords: ['ပြန်ရ', 'refund'] }
+    ];
+    
+    // Income Detection Keywords (to switch Type)
+    const incomeKeywords = ['လစာ', 'ရတာ', 'ရတယ်', 'ဝင်ငွေ', 'income', 'received', 'get', 'salary', 'bonus', 'refund'];
+
+    while ((match = regex.exec(cleanTranscript)) !== null) {
+        let rawDescription = match[1]; // Text before number
+        let rawAmount = match[2].replace(/,/g, ''); // Number
+        
+        // Clean up description (remove trailing currency words, 'and', etc.)
+        rawDescription = rawDescription.replace(/(ကျပ်|ပိုက်ဆံ|amount|kyat|ks|and|ပြီးတော့|က)/g, '').trim();
+        
+        if (!rawDescription) continue;
+
+        const amountVal = parseFloat(rawAmount);
+        
+        // Detect Type (Income vs Expense)
+        let txType = TransactionType.EXPENSE;
+        let mappingList = expenseMappings;
+        
+        if (incomeKeywords.some(k => rawDescription.includes(k))) {
+            txType = TransactionType.INCOME;
+            mappingList = incomeMappings;
+        }
+
+        // Map Category based on Type
+        let detectedLabel = '';
+        for (const map of mappingList) {
+            for (const keyword of map.keywords) {
+                if (rawDescription.includes(keyword)) {
+                    detectedLabel = map.category;
+                    break;
+                }
+            }
+            if (detectedLabel) break;
+        }
+
+        // Fallback Label
+        if (!detectedLabel) {
+             // Use capitalized raw text
+             detectedLabel = rawDescription.charAt(0).toUpperCase() + rawDescription.slice(1);
+             if (detectedLabel.length === 0) detectedLabel = t.cat_general;
+        }
+
+        parsedItems.push({
+            amount: amountVal,
+            label: detectedLabel,
+            type: txType,
+            date: getLocalDate()
+        });
+    }
+
+    if (parsedItems.length === 0) {
+        // Fallback for single item without clear separation or just a number
+        const singleAmountMatch = cleanTranscript.match(/[\d,]+(\.\d+)?/);
+        if (singleAmountMatch) {
+             setAmount(singleAmountMatch[0].replace(/,/g, ''));
+             setLabel(''); 
+             setType(TransactionType.EXPENSE);
+             setShowForm(true);
+             showToast(language === 'my' ? 'ရှင်းလင်းစွာ မကြားရပါ၊ ဖြည့်စွက်ပေးပါ' : 'Please complete details', 'error');
+        } else {
+             showToast(language === 'my' ? 'နားမလည်ပါ' : 'Could not understand', 'error');
+        }
         return;
     }
 
-    // Keyword Mapping
-    let detectedLabel = '';
-    const keywords: Record<string, string[]> = {
-        'အစားအသောက်': ['နေ့လည်စာ', 'မနက်စာ', 'ထမင်း', 'ညစာ', 'လက်ဖက်ရည်', 'ကော်ဖီ', 'မုန့်', 'အသား', 'ဟင်းသီးဟင်းရွက်'],
-        'လမ်းစရိတ်': ['ကားခ', 'တက္ကစီ', 'ဆီဖိုး', 'ရထား', 'ဆိုင်ကယ်'],
-        'ဖုန်းဘေလ်': ['ဖုန်းဘေ', 'အင်တာနက်', 'ဒေတာ', 'ဘေလ်', 'wifi'],
-        'ဈေးဝယ်': ['ဈေး', 'အင်္ကျီ', 'ဖိနပ်', 'အသုံးအဆောင်'],
-        'ကျန်းမာရေး': ['ဆေး', 'ဆေးခန်း', 'ဆရာဝန်'],
-    };
-
-    // Check for specific keywords in the transcript
-    let foundCategory = false;
+    // Batch Save
+    setIsSaving(true);
+    let successCount = 0;
     
-    // First pass: Check if the user said a specific keyword that matches our categories
-    for (const [category, words] of Object.entries(keywords)) {
-        for (const word of words) {
-            if (cleanTranscript.includes(word)) {
-                detectedLabel = word; // Use the specific word (e.g. "နေ့လည်စာ") as label
-                foundCategory = true;
-                break;
-            }
-        }
-        if (foundCategory) break;
-    }
-
-    // Fallback: If no keyword found, check if they said the category name directly
-    if (!foundCategory) {
-        // Just take the text part excluding the number
-        const potentialLabel = cleanTranscript.replace(/[0-9]/g, '').trim();
-        detectedLabel = potentialLabel || (language === 'my' ? 'အထွေထွေ' : 'General');
-    }
-
-    if (detectedAmount && detectedLabel) {
-        // AUTO SAVE Logic
-        setIsSaving(true);
-        const newTransactionPayload: Transaction = {
-            id: '', 
-            amount: parseFloat(detectedAmount),
-            label: detectedLabel,
-            date: getLocalDate(), 
-            type: TransactionType.EXPENSE, // Default to Expense
-        };
-
+    for (const item of parsedItems) {
         try {
-            console.log('Attempting to save transaction via Voice...');
-            const { data, error } = await saveTransaction(newTransactionPayload);
+            const { data } = await saveTransaction(item as Transaction);
             if (data) {
                 setTransactions(prev => [...prev, data]);
-                showToast(language === 'my' 
-                    ? `စာရင်းသွင်းပြီးပါပြီ: ${detectedLabel} - ${detectedAmount} ကျပ်` 
-                    : `Added: ${detectedLabel} - ${detectedAmount}`, 
-                    'success');
-            } else {
-                console.error('Save failed:', error);
-                showToast('Failed to auto-save: ' + error, 'error');
+                successCount++;
             }
-        } catch (e: any) {
-            console.error('System error saving transaction:', e);
-            showToast('System Error: ' + e.message, 'error');
-        } finally {
-            setIsSaving(false);
+        } catch (e) {
+            console.error(e);
         }
+    }
+    
+    setIsSaving(false);
+    
+    if (successCount > 0) {
+        showToast(language === 'my' 
+            ? `${successCount} ခု စာရင်းသွင်းပြီးပါပြီ` 
+            : `Added ${successCount} transactions`, 
+            'success');
     } else {
-        // Populate Form if data is incomplete
-        setAmount(detectedAmount);
-        setLabel(detectedLabel);
-        setType(TransactionType.EXPENSE); 
-        setShowForm(true);
-        showToast(language === 'my' ? 'အသံဖြင့် စာရင်းသွင်းရန် ပြင်ဆင်ပြီးပါပြီ' : 'Voice command processed', 'success');
+        showToast('Failed to save transactions', 'error');
     }
   };
 
