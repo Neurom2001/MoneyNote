@@ -11,13 +11,19 @@ import {
   LogOut, Plus, Trash2, Home, Download, Loader2, ArrowUpDown, ArrowUp, ArrowDown, 
   X, Edit, Save, CheckCircle2, AlertCircle, Search, PieChart, BarChart3, LineChart as LineChartIcon,
   Utensils, Bus, ShoppingBag, Stethoscope, Zap, Gift, Smartphone, Briefcase, GraduationCap, CircleDollarSign,
-  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, HelpCircle, Mail, Send, Settings, AlertTriangle, SlidersHorizontal, Languages, Moon, Sun, ClipboardList, PiggyBank
+  Banknote, TrendingUp, Wallet, ArrowLeftRight, Heart, Copyright, Filter, Lock, HelpCircle, Mail, Send, Settings, AlertTriangle, SlidersHorizontal, Languages, Moon, Sun, ClipboardList, PiggyBank, Mic, MicOff
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   LineChart, Line, AreaChart, Area 
 } from 'recharts';
 import { TRANSLATIONS, Language } from '../utils/translations';
+
+// --- Type Definitions for Web Speech API ---
+interface IWindow extends Window {
+  webkitSpeechRecognition: any;
+  SpeechRecognition: any;
+}
 
 interface DashboardProps {
   currentUser: string;
@@ -125,6 +131,9 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   
+  // Voice Command State
+  const [isListening, setIsListening] = useState(false);
+
   // PWA Install Prompt
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -210,6 +219,100 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
+
+  // --- Voice Command Logic ---
+  const convertBurmeseNumbers = (str: string) => {
+    const burmeseNums = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'];
+    return str.replace(/[၀-၉]/g, (d) => burmeseNums.indexOf(d).toString());
+  };
+
+  const processVoiceCommand = (transcript: string) => {
+    const cleanTranscript = convertBurmeseNumbers(transcript);
+    
+    // Regex to find numbers (Amount)
+    const amountMatch = cleanTranscript.match(/(\d+)/);
+    const detectedAmount = amountMatch ? amountMatch[0] : '';
+    
+    if (!detectedAmount) {
+        showToast(language === 'my' ? 'ပမာဏကို နားမလည်ပါ' : 'Could not detect amount', 'error');
+        return;
+    }
+
+    // Keyword Mapping
+    let detectedLabel = '';
+    const keywords: Record<string, string[]> = {
+        'အစားအသောက်': ['နေ့လည်စာ', 'မနက်စာ', 'ထမင်း', 'ညစာ', 'လက်ဖက်ရည်', 'ကော်ဖီ', 'မုန့်'],
+        'လမ်းစရိတ်': ['ကားခ', 'တက္ကစီ', 'ဆီဖိုး', 'ရထား', 'ဆိုင်ကယ်'],
+        'ဖုန်းဘေလ်': ['ဖုန်းဘေ', 'အင်တာနက်', 'ဒေတာ', 'ဘေလ်'],
+        'ဈေးဝယ်': ['ဈေး', 'အင်္ကျီ', 'ဖိနပ်'],
+        'ကျန်းမာရေး': ['ဆေး', 'ဆေးခန်း'],
+    };
+
+    // Check for specific keywords in the transcript
+    let foundCategory = false;
+    
+    // First pass: Check if the user said a specific keyword that matches our categories
+    for (const [category, words] of Object.entries(keywords)) {
+        for (const word of words) {
+            if (cleanTranscript.includes(word)) {
+                detectedLabel = word; // Use the specific word (e.g. "နေ့လည်စာ") as label
+                foundCategory = true;
+                break;
+            }
+        }
+        if (foundCategory) break;
+    }
+
+    // Fallback: If no keyword found, check if they said the category name directly
+    if (!foundCategory) {
+        // Just take the text part excluding the number
+        detectedLabel = cleanTranscript.replace(/[0-9]/g, '').trim();
+    }
+
+    // Populate Form
+    setAmount(detectedAmount);
+    setLabel(detectedLabel || (language === 'my' ? 'အထွေထွေ' : 'General'));
+    setType(TransactionType.EXPENSE); // Default voice to Expense for now
+    setShowForm(true);
+    showToast(language === 'my' ? 'အသံဖြင့် စာရင်းသွင်းရန် ပြင်ဆင်ပြီးပါပြီ' : 'Voice command processed', 'success');
+  };
+
+  const startListening = () => {
+    const Window = window as unknown as IWindow;
+    const SpeechRecognition = Window.SpeechRecognition || Window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      showToast('Web Speech API is not supported in this browser.', 'error');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'my-MM'; // Set to Burmese
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      processVoiceCommand(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error', event.error);
+      setIsListening(false);
+      showToast('Error listening: ' + event.error, 'error');
+    };
+
+    recognition.start();
+  };
+
 
   const handleLanguageChange = async (newLang: Language) => {
     setLanguage(newLang);
@@ -956,14 +1059,26 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
          </div>
       </footer>
 
-      {/* FAB */}
+      {/* FABs */}
       {isCurrentMonth && (
-        <button
-          onClick={() => { resetForm(); setShowForm(true); }}
-          className="fixed bottom-24 sm:bottom-6 right-6 bg-primary hover:bg-emerald-600 text-slate-900 rounded-full p-4 shadow-lg shadow-emerald-900/20 transition hover:scale-105 active:scale-95 z-30"
-        >
-          <Plus size={32} strokeWidth={2.5} />
-        </button>
+        <div className="fixed bottom-24 sm:bottom-6 right-6 flex flex-col items-center gap-3 z-30">
+            {/* Voice Command Button */}
+            <button
+                onClick={isListening ? () => {} : startListening}
+                className={`rounded-full p-3 shadow-lg transition-all duration-300 ${isListening ? 'bg-red-500 text-white animate-pulse ring-4 ring-red-500/30' : 'bg-slate-700 dark:bg-slate-600 hover:bg-slate-800 text-white'}`}
+                title="Voice Command (Burmese)"
+            >
+                {isListening ? <MicOff size={24} /> : <Mic size={24} />}
+            </button>
+
+            {/* Add Transaction Button */}
+            <button
+            onClick={() => { resetForm(); setShowForm(true); }}
+            className="bg-primary hover:bg-emerald-600 text-slate-900 rounded-full p-4 shadow-lg shadow-emerald-900/20 transition hover:scale-105 active:scale-95"
+            >
+            <Plus size={32} strokeWidth={2.5} />
+            </button>
+        </div>
       )}
 
       {/* Input Form Modal */}

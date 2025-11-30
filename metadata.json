@@ -1,5 +1,7 @@
 {
   "name": "MoneyNote",
   "description": "A simple and elegant income and expense tracker with monthly analysis features, designed in Burmese.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }
