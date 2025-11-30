@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Mic, Loader2, Check, X, Trash2, FileText, Save } from 'lucide-react';
+import { Mic, Check, X, Trash2, FileText, Save } from 'lucide-react';
 import { TransactionType } from '../types';
 
 interface AIParsedTransaction {
@@ -153,45 +153,41 @@ const VoiceExpenseInput: React.FC<VoiceExpenseInputProps> = ({ onTransactionsCon
 
   return (
     <>
-      {/* Microphone Button */}
-      <div className="flex flex-col items-center gap-2 relative z-50">
-        <button
-          onMouseDown={handleStart}
-          onMouseUp={handleStop}
-          onMouseLeave={handleStop}
-          onTouchStart={handleStart}
-          onTouchEnd={handleStop}
-          disabled={status !== 'idle' && status !== 'recording'}
-          className={`
-            relative flex items-center justify-center p-4 rounded-full shadow-lg transition-all duration-200 select-none
-            ${status === 'recording' 
-              ? 'bg-red-500 text-white scale-110 shadow-red-500/40 ring-4 ring-red-500/20' 
-              : (status === 'transcribing' || status === 'analyzing')
-                ? 'bg-amber-500 cursor-wait animate-pulse' 
-                : 'bg-slate-700 dark:bg-slate-600 text-white hover:bg-slate-800'
-            }
-          `}
-          title="Hold to Speak"
-          style={{ touchAction: 'none' }}
-        >
-          {(status === 'transcribing' || status === 'analyzing') ? (
-            <Loader2 size={24} className="animate-spin text-white" />
-          ) : status === 'recording' ? (
-            <>
-              <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-ping"></div>
-              <Mic size={24} className="animate-pulse" />
-            </>
-          ) : (
-            <Mic size={24} />
-          )}
-        </button>
-        
-        <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest opacity-80 bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
-          {status === 'idle' && 'Hold to Speak'}
-          {status === 'recording' && 'Recording...'}
-          {status === 'transcribing' && 'Transcribing...'}
-          {status === 'analyzing' && 'AI Analyzing...'}
-        </span>
+      <div className="flex flex-col items-center justify-center gap-3 relative z-50 h-32 w-32">
+        {(status === 'transcribing' || status === 'analyzing') ? (
+            <div className="flex flex-col items-center gap-2" aria-live="assertive">
+                <div className="dots-animation flex items-center justify-center gap-1.5 h-8">
+                    <div className="w-3 h-3 bg-slate-400 rounded-full"></div>
+                    <div className="w-3 h-3 bg-slate-400 rounded-full"></div>
+                    <div className="w-3 h-3 bg-slate-400 rounded-full"></div>
+                </div>
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    လုပ်ဆောင်နေသည်...
+                </span>
+            </div>
+        ) : (
+            <button
+                onMouseDown={handleStart}
+                onMouseUp={handleStop}
+                onMouseLeave={handleStop}
+                onTouchStart={handleStart}
+                onTouchEnd={handleStop}
+                className={`
+                    relative flex items-center justify-center w-20 h-20 rounded-full shadow-xl transition-all duration-300 ease-in-out select-none focus:outline-none
+                    ${status === 'recording'
+                        ? 'bg-gradient-to-br from-red-500 to-red-600 text-white transform scale-120'
+                        : 'bg-slate-700 dark:bg-slate-600 text-white hover:bg-slate-800'
+                    }
+                `}
+                title="Hold to Speak"
+                style={{ touchAction: 'none' }}
+            >
+                {status === 'recording' && (
+                    <div className="absolute inset-0 rounded-full bg-red-500/50 sound-wave z-0"></div>
+                )}
+                <Mic size={32} className="relative z-10" />
+            </button>
+        )}
       </div>
 
       {/* Review Modal */}
