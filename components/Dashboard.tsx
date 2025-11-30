@@ -213,86 +213,65 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
   }, [currentUser]);
 
   // --- Voice Command Logic (AI Powered) ---
-  const processVoiceCommand = async (transcript: string) => {
-    if (!transcript) return;
+  const handleVoiceTransactions = async (aiTransactions: any[]) => {
+    if (!aiTransactions || aiTransactions.length === 0) return;
     
     setIsSaving(true);
-    showToast(language === 'my' ? 'AI မှ စာရင်းများကို ခွဲခြားနေပါသည်...' : 'AI is parsing...', 'success');
+    let successCount = 0;
 
     try {
-        // Call the Backend AI Parser
-        const response = await fetch('/api/parse', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: transcript }),
-        });
+        // Map AI response to our App Categories to ensure translations work
+        const mapCategory = (aiCategory: string, type: TransactionType) => {
+             const tKey = aiCategory.toLowerCase();
+             // Simple mapping based on known keys
+             if (tKey.includes('food')) return t.cat_food;
+             if (tKey.includes('transport')) return t.cat_transport;
+             if (tKey.includes('shop')) return t.cat_shopping;
+             if (tKey.includes('health')) return t.cat_health;
+             if (tKey.includes('bill')) return t.cat_bill;
+             if (tKey.includes('phone')) return t.cat_phone;
+             if (tKey.includes('gift')) return t.cat_gift;
+             if (tKey.includes('work')) return t.cat_work;
+             if (tKey.includes('edu')) return t.cat_education;
+             
+             if (tKey.includes('salary')) return t.cat_salary;
+             if (tKey.includes('bonus')) return t.cat_bonus;
+             if (tKey.includes('sale')) return t.cat_sales;
+             if (tKey.includes('pocket') || tKey.includes('allowance')) return t.cat_pocket;
+             if (tKey.includes('refund')) return t.cat_refund;
 
-        const data = await response.json();
+             return t.cat_general;
+        };
 
-        if (data.transactions && Array.isArray(data.transactions) && data.transactions.length > 0) {
-            let successCount = 0;
-
-            // Map AI response to our App Categories to ensure translations work
-            const mapCategory = (aiCategory: string, type: TransactionType) => {
-                 // The AI returns English category names like "Food", "Transport".
-                 // We map these to our TRANSLATION keys if needed, but since we store text labels in DB,
-                 // we can either store the localized string or the English key.
-                 // For consistency with the UI, let's map to the localized label.
-                 
-                 const tKey = aiCategory.toLowerCase();
-                 // Simple mapping based on known keys
-                 if (tKey.includes('food')) return t.cat_food;
-                 if (tKey.includes('transport')) return t.cat_transport;
-                 if (tKey.includes('shop')) return t.cat_shopping;
-                 if (tKey.includes('health')) return t.cat_health;
-                 if (tKey.includes('bill')) return t.cat_bill;
-                 if (tKey.includes('phone')) return t.cat_phone;
-                 if (tKey.includes('gift')) return t.cat_gift;
-                 if (tKey.includes('work')) return t.cat_work;
-                 if (tKey.includes('edu')) return t.cat_education;
-                 
-                 if (tKey.includes('salary')) return t.cat_salary;
-                 if (tKey.includes('bonus')) return t.cat_bonus;
-                 if (tKey.includes('sale')) return t.cat_sales;
-                 if (tKey.includes('pocket') || tKey.includes('allowance')) return t.cat_pocket;
-                 if (tKey.includes('refund')) return t.cat_refund;
-
-                 return t.cat_general;
+        for (const item of aiTransactions) {
+            const mappedCategory = mapCategory(item.category, item.type as TransactionType);
+            const payload: Transaction = {
+                id: '',
+                amount: item.amount,
+                label: item.label || mappedCategory, // Use AI label or fallback to category
+                type: item.type as TransactionType,
+                date: getLocalDate()
             };
-
-            for (const item of data.transactions) {
-                const mappedCategory = mapCategory(item.category, item.type as TransactionType);
-                const payload: Transaction = {
-                    id: '',
-                    amount: item.amount,
-                    label: item.label || mappedCategory, // Use AI label or fallback to category
-                    type: item.type as TransactionType,
-                    date: getLocalDate()
-                };
-                
-                const { data: savedData } = await saveTransaction(payload);
-                if (savedData) {
-                    setTransactions(prev => [...prev, savedData]);
-                    successCount++;
-                }
+            
+            const { data: savedData } = await saveTransaction(payload);
+            if (savedData) {
+                setTransactions(prev => [...prev, savedData]);
+                successCount++;
             }
+        }
 
-            if (successCount > 0) {
-                showToast(language === 'my' 
-                    ? `${successCount} ခု စာရင်းသွင်းပြီးပါပြီ` 
-                    : `Added ${successCount} transactions`, 
-                    'success');
-            } else {
-                 showToast('Failed to save data', 'error');
-            }
-
+        if (successCount > 0) {
+            showToast(language === 'my' 
+                ? `${successCount} ခု စာရင်းသွင်းပြီးပါပြီ` 
+                : `Added ${successCount} transactions`, 
+                'success');
         } else {
-             showToast(language === 'my' ? 'နားမလည်ပါ' : 'Could not understand', 'error');
+             showToast('Failed to save data', 'error');
         }
 
     } catch (error) {
-        console.error("AI Parse Error:", error);
-        showToast("Error processing voice command", 'error');
+        console.error("Save Error:", error);
+        showToast("Error processing transactions", 'error');
     } finally {
         setIsSaving(false);
     }
@@ -1048,7 +1027,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser, onLogout }) => {
       {isCurrentMonth && (
         <div className="fixed bottom-24 sm:bottom-6 right-6 flex flex-col items-center gap-3 z-30">
             {/* New Push-to-Talk Component */}
-            <VoiceExpenseInput onSpeechEnd={processVoiceCommand} />
+            <VoiceExpenseInput onTransactionsConfirmed={handleVoiceTransactions} />
 
             {/* Add Transaction Button */}
             <button
